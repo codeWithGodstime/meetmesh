@@ -1,3 +1,46 @@
-version: '3'
-
 services:
+  backend:
+    build: .
+    image: meetmesh:latest
+    container_name: meetmesh-backend
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+    ports:
+      - 8000:8000
+    env_file:
+      - ../env/.env.local
+
+  db:
+    image: kartoza/postgis
+    container_name: meetmesh-postgres
+    env_file:
+      - ../env/.env.local
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog
+    logging:
+      driver: 'none'
+    ports:
+      - 1025:1025
+      - 8025:8025
+  
+  storage:
+    image: scireum/s3-ninja:latest
+    container_name: "meetmesh-storage"
+    ports:
+      - 9444:9000
+    volumes:
+      - storage:/home/s3
+
+volumes:
+  postgres_data:
+  storage:
+
