@@ -23,7 +23,7 @@ const login = () => null
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
-  // const { login } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
 
   const form = useForm<LoginFormValues>({
@@ -38,7 +38,7 @@ export default function Login() {
     setIsLoading(true)
     try {
       await login(data.email, data.password)
-      navigate("/")
+      navigate("/feed")
     } catch (error) {
       // toast({
       //   variant: "destructive",

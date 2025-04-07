@@ -22,12 +22,12 @@ const createUserIcon = (user: any, isCurrentUser: boolean) => {
   }
 
   const statusColor = statusColors[user.status as keyof typeof statusColors] || "bg-gray-500"
-  const borderColor = isCurrentUser ? "border-primary" : "border-white"
+  const borderColor = isCurrentUser ? "border-primary" : "border-red-400"
 
   const iconHtml = `
     <div class="relative">
-      <div class="rounded-full overflow-hidden border-2 ${borderColor}">
-        <img src="${user.avatar}" alt="${user.name}" class="w-10 h-10 object-cover" />
+      <div class="rounded-full overflow-hidden border-4 ${borderColor}">
+        <img src="${user.profileImage}" alt="${user.name}" class="w-10 h-10 object-cover" />
       </div>
       <span class="absolute bottom-0 right-0 w-3 h-3 ${statusColor} border-2 border-white rounded-full"></span>
       ${isCurrentUser ? '<div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-xs font-bold bg-primary text-white px-1 rounded">You</div>' : ""}
@@ -37,8 +37,8 @@ const createUserIcon = (user: any, isCurrentUser: boolean) => {
   return L.divIcon({
     html: iconHtml,
     className: "user-marker",
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
+    iconSize: [60, 60],
+    iconAnchor: [40, 40],
   })
 }
 
@@ -93,7 +93,7 @@ export default function MapComponent({users, onUserClick, currentUser}: MapCompo
       if (!isCurrentUser) {
         const marker = L.marker([user.location.latitude, user.location.longitude], { icon })
           .addTo(mapRef.current!)
-          .bindTooltip(user.name)
+          .bindTooltip(user.fullname)
           .on("click", () => {
             onUserClick(user)
           })

@@ -20,7 +20,7 @@ export const loginUser = async (email: string, password: string) => {
     // Save tokens and user info to localStorage
     localStorage.setItem("accessToken", data.access);
     localStorage.setItem("refreshToken", data.refresh);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    localStorage.setItem("user", JSON.stringify(data.data));
 
     return data;
 }

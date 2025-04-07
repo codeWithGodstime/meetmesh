@@ -218,7 +218,7 @@ interface MessageDetailProps {
   onSendMessage: () => void
 }
 
-function MessageDetail({ message, onBack, newMessageText, setNewMessageText, onSendMessage }: MessageDetailProps) {
+export function MessageDetail({ message, onBack, newMessageText, setNewMessageText, onSendMessage }: MessageDetailProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="p-3 border-b bg-white flex items-center">
