@@ -42,13 +42,13 @@ const createUserIcon = (user: any, isCurrentUser: boolean) => {
   })
 }
 
-// interface MapComponentProps {
-//   users: any[]
-//   onUserClick: (user: any) => void
-//   currentUser: any
-// }
+interface MapComponentProps {
+  users: any[]
+  onUserClick: (user: any) => void
+  currentUser: any
+}
 
-export default function MapComponent() {
+export default function MapComponent({users, onUserClick, currentUser}: MapComponentProps) {
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<{ [key: number]: L.Marker }>({})
 
@@ -57,7 +57,7 @@ export default function MapComponent() {
 
     // Initialize map if it doesn't exist
     if (!mapRef.current) {
-      mapRef.current = L.map("map").setView([51.505, -0.09], 13)
+      mapRef.current = L.map("map").setView([5.000, 7.837672], 15)
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -76,36 +76,36 @@ export default function MapComponent() {
 
   // Update markers when users data changes
   useEffect(() => {
-    // if (!mapRef.current || !users.length) return
+    if (!mapRef.current || !users.length) return
 
-    // // Clear existing markers
-    // Object.values(markersRef.current).forEach((marker) => {
-    //   marker.remove()
-    // })
-    // markersRef.current = {}
+    // Clear existing markers
+    Object.values(markersRef.current).forEach((marker) => {
+      marker.remove()
+    })
+    markersRef.current = {}
 
-    // // Add new markers
-    // users.forEach((user) => {
-    //   const isCurrentUser = user.id === currentUser?.id
-    //   const icon = createUserIcon(user, isCurrentUser)
+    // Add new markers
+    users.forEach((user) => {
+      const isCurrentUser = user.id === currentUser?.id
+      const icon = createUserIcon(user, isCurrentUser)
 
-    //   // Skip adding click handler for current user
-    //   if (!isCurrentUser) {
-    //     const marker = L.marker([user.lat, user.lng], { icon })
-    //       .addTo(mapRef.current!)
-    //       .bindTooltip(user.name)
-    //       .on("click", () => {
-    //         onUserClick(user)
-    //       })
+      // Skip adding click handler for current user
+      if (!isCurrentUser) {
+        const marker = L.marker([user.location.latitude, user.location.longitude], { icon })
+          .addTo(mapRef.current!)
+          .bindTooltip(user.name)
+          .on("click", () => {
+            onUserClick(user)
+          })
 
-    //     markersRef.current[user.id] = marker
-    //   } else {
-    //     // Just add the marker without click handler for current user
-    //     const marker = L.marker([user.lat, user.lng], { icon }).addTo(mapRef.current!).bindTooltip(`${user.name} (You)`)
+        markersRef.current[user.id] = marker
+      } else {
+        // Just add the marker without click handler for current user
+        const marker = L.marker([user.lat, user.lng], { icon }).addTo(mapRef.current!).bindTooltip(`${user.name} (You)`)
 
-    //     markersRef.current[user.id] = marker
-    //   }
-    // })
+        markersRef.current[user.id] = marker
+      }
+    })
   }, [])
 
   return <div id="map" className="h-[100vh] w-full z-0" />
