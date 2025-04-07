@@ -12,9 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     libjpeg-dev \
     zlib1g-dev \
+    gdal-bin \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements /requirements
 RUN pip install --no-cache-dir -r /requirements/local.txt
 
-COPY . /app
+COPY ../ /app

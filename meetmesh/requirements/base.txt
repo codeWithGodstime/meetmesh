@@ -13,3 +13,5 @@ tzdata==2025.2
 django-storages==1.14.6
 boto3==1.37.28
 django-filter==25.1
+django_countries
+Pillow

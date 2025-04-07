@@ -8,7 +8,7 @@ createsuperuser:
 	docker-compose exec backend python manage.py createsuperuser
 
 shell:
-	docker-compose exec backend sh
+	docker-compose -f compose/docker-compose.yml run backend sh
 
 # Start the Django development server
 startserver:

@@ -1,12 +1,12 @@
 services:
   backend:
-    build: .
+    build: ..
     image: meetmesh:latest
     container_name: meetmesh-backend
     command: python manage.py runserver 0.0.0.0:8000
     restart: always
     volumes:
-      - .:/app
+      - ../:/app
     depends_on:
       - db
     ports:

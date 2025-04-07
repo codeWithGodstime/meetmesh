@@ -1,9 +1,8 @@
 import uuid
-from django.db import models
+from django.contrib.gis.db import models
 
 def generate_uuid():
     return str(uuid.uuid4())
-
 
 class BaseModelMixin(models.Model):
 
