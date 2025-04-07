@@ -8,6 +8,8 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework_simplejwt.views import TokenObtainPairView as SimpleJWTTokenObtainPairView
 from django.conf import settings
 from django.db import transaction
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 from .serializers import UserSerializer, TokenObtainSerializer
 
@@ -28,7 +30,18 @@ class UserViewset(viewsets.ModelViewSet):
             user = serializer.save()
 
             response_serializer = self.get_serializer(user)
-            response = Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
+
+            refresh = RefreshToken.for_user(user)
+            access = refresh.access_token
+
+            # Attach tokens to the serializer instance
+            data = {
+                "refresh": str(refresh),
+                "access": str(access),
+                "user": response_serializer.data
+            }
+
+            response = Response(data=data, status=status.HTTP_201_CREATED)
             return response
         else:
             logger.error(f"User registration failed due to invalid data: {serializer.errors}")
@@ -91,6 +104,7 @@ class UserViewset(viewsets.ModelViewSet):
 
     @action(methods=["post"], detail=False, permission_classes=[permissions.IsAuthenticated])
     def change_password(self, request, *args, **kwargs):
+
         serializer = UserSerializer.ChangePasswordSerializer(data=request.data, context={"request": request})
 
         if serializer.is_valid():
@@ -98,6 +112,15 @@ class UserViewset(viewsets.ModelViewSet):
             serializer.save()
             return Response({"message": "Password change successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @transaction.atomic
+    @action(methods=['post'], detail=False) #TODO make this authenticated action
+    def complete_onboarding(self, request, *args, **kwargs):
+        serializer = UserSerializer.UserOnBoardingSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.update(instance=request.user, validated_data=serializer.validated_data)
+            return Response({"message": "Onboarding completed!"})
+        return Response(serializer.errors, status=400)
 
 
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):

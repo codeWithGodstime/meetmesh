@@ -15,6 +15,7 @@ class User(AbstractUser, BaseModelMixin):
     username = models.CharField(max_length=50, unique=True, null=True, blank=True)
     city = models.CharField(max_length=30, null=True, blank=True)
     country = CountryField(blank=True, null=True)
+    has_completed_onboarding = models.BooleanField(default=False)
 
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -49,9 +50,12 @@ class Profile(models.Model):
     profile_image = models.ImageField(blank=True, null=True)
     bio = models.TextField()
     is_online = models.BooleanField(default=False)
-    last_seen = models.DateTimeField()
+    last_seen = models.DateTimeField(blank=True, null=True)
     location_visibility = models.BooleanField(default=False)
     social_links = models.JSONField(blank=True, null=True, default=list)
+    gender = models.CharField(max_length=10, null=True, blank=True)
+    interests = models.JSONField(blank=True, null=True, default=list)
+
     """
     [
     {
@@ -64,8 +68,9 @@ class Profile(models.Model):
 
 
 class NotificationSetting(BaseModelMixin):
-    notify_on_proximity = models.BooleanField(default=True)
-    notify_radius_km = models.FloatField()
+    notify_on_proximity = models.BooleanField(default=True, null=True)
+    notify_radius_km = models.FloatField(blank=True, null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="notification_setting")
 
 
 class Notification(BaseModelMixin):
