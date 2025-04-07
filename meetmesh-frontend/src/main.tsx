@@ -7,6 +7,7 @@ import Login from './pages/login.tsx';
 import Signup from './pages/signup.tsx';
 import { AuthProvider } from './contexts/auth-context.tsx';
 import OnboardingPage from './pages/on-boarding.tsx';
+import UserMapFeed from './pages/map-page.tsx';
 
 
 createRoot(document.getElementById('root')!).render(
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/profile-setup" element={<OnboardingPage />} />
+          <Route path='/feed' element={<UserMapFeed />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

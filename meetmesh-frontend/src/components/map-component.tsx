@@ -108,6 +108,6 @@ export default function MapComponent() {
     // })
   }, [])
 
-  return <div id="map" className="h-full w-full z-0" />
+  return <div id="map" className="h-[100vh] w-full z-0" />
 }
 

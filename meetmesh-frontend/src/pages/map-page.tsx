@@ -1,6 +1,8 @@
 import MapComponent from "@/components/map-component"
 
-export default function OnboardingPage() {
+export default function UserMapFeed() {
+
+
   return (
     <main>
       <MapComponent />
