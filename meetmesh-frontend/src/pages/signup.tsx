@@ -6,16 +6,16 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { MapPin } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-// import { useToast } from "@/components/ui/use-toast"
+import { signUp } from "@/services/auth"
+import { toast } from "sonner"
 
 const signupSchema = z
   .object({
-    name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+    username: z.string().min(2, { message: "Username must be at least 2 characters" }),
     email: z.string().email({ message: "Please enter a valid email address" }),
     password: z.string().min(6, { message: "Password must be at least 6 characters" }),
     confirmPassword: z.string(),
@@ -26,18 +26,15 @@ const signupSchema = z
   })
 
 type SignupFormValues = z.infer<typeof signupSchema>
-const signup =()=> null
 
 export default function Signup() {
   const [isLoading, setIsLoading] = useState(false)
-  // const { signup } = useAuth()
   const navigate = useNavigate()
-  // const { toast } = useToast()
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
-      name: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -47,18 +44,15 @@ export default function Signup() {
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true)
     try {
-      await signup(data.name, data.email, data.password)
-      // toast({
-      //   title: "Account created",
-      //   description: "Your account has been created successfully.",
-      // })
+      await signUp(data.username, data.email, data.password)
+      toast(
+        "Your account has been created successfully."
+      )
       navigate("/")
     } catch (error) {
-      // toast({
-      //   variant: "destructive",
-      //   title: "Signup failed",
-      //   description: "An error occurred during signup. Please try again.",
-      // })
+      toast(
+        "An error occurred during signup. Please try again.",
+      )
     } finally {
       setIsLoading(false)
     }
@@ -81,10 +75,10 @@ export default function Signup() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="name"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
                       <Input placeholder="John Doe" {...field} />
                     </FormControl>
