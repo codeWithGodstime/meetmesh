@@ -44,6 +44,7 @@ class UserSerializer:
         social_links = serializers.ListField(source="profile.social_links")
         # fullname = serializers.CharField(source="fullname", read_only=True)
         location = serializers.SerializerMethodField()
+        country = serializers.SerializerMethodField()
 
         class Meta:
             model = User
@@ -72,6 +73,12 @@ class UserSerializer:
                     "longitude": obj.location.x
                 }
             return None
+
+        def get_country(self, obj):
+            return {
+                # "code": obj.country.code,
+                "name": obj.country.name
+            }
 
     class UserOnBoardingSerializer(serializers.Serializer):
         bio = serializers.CharField()
