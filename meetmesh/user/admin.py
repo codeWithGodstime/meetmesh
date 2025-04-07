@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import User, Profile
+from leaflet.admin import LeafletGeoAdmin
+
+from .models import User, Profile, NotificationSetting
 
 
-admin.site.register([User, Profile])
+@admin.register(User)
+class UserAdmin(LeafletGeoAdmin):
+    pass
+
+admin.site.register([Profile, NotificationSetting])

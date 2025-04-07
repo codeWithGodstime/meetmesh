@@ -22,8 +22,10 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "storages",
+    "leaflet",
 
-    "user"
+    "user",
+    "core"
 ]
 
 MIDDLEWARE = [
@@ -85,4 +87,15 @@ USE_TZ = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
  
-AUTH_USER_MODEL = "user.User"
+AUTH_USER_MODEL = "user.User" 
+
+LEAFLET_CONFIG = {
+    # AKS Latitude: 5.0000 Longitude: 7.8333.
+    "DEFAULT_CENTER": (5.0000, 7.8333),
+    "DEFAULT_ZOOM": 16,
+    "MIN_ZOOM": 3,
+    "MAX_ZOOM": 20,
+    "DEFAULT_PRECISION": 6,
+    "SCALE": "both",
+    "ATTRIBUTION_PREFIX": "powered by me",
+}

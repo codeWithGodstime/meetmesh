@@ -8,6 +8,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework_simplejwt.views import TokenObtainPairView as SimpleJWTTokenObtainPairView
 from django.conf import settings
 from django.db import transaction
+from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
@@ -114,7 +115,7 @@ class UserViewset(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @transaction.atomic
-    @action(methods=['post'], detail=False) #TODO make this authenticated action
+    @action(methods=['post'], detail=False, permission_classes=[permissions.IsAuthenticated]) #TODO make this authenticated action
     def complete_onboarding(self, request, *args, **kwargs):
         serializer = UserSerializer.UserOnBoardingSerializer(data=request.data)
         if serializer.is_valid():
@@ -122,7 +123,49 @@ class UserViewset(viewsets.ModelViewSet):
             return Response({"message": "Onboarding completed!"})
         return Response(serializer.errors, status=400)
 
+    @action(methods=["get"], detail=False, permission_classes=[permissions.IsAuthenticated])
+    def feeds(self, request, *args, **kwargs):
+        user = request.user
+        location = user.location
+        interests = set(user.profile.interests or [])
+        # radius_km = getattr(user.notification_setting, "notify_radius_km", 1000)  # default to 100km
+        radius_km = 1000
 
+        if not location:
+            return Response({
+                "status": "error",
+                "message": "User location is not set."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        nearby_users = []
+        for other_user in User.objects.exclude(id=user.id).select_related('profile'):
+            if not other_user.location:
+                continue
+
+            dist = geopy_distance(
+                (location.y, location.x),  # (lat, lon)
+                (other_user.location.y, other_user.location.x)
+            ).km
+
+            if dist <= radius_km:
+                print("reached here")
+                other_interests = set(other_user.profile.interests or [])
+                nearby_users.append(other_user) #TODO remove later
+
+                # if interests & other_interests:  # at least one interest overlaps
+                #     other_user.distance_km = round(dist, 1)
+                #     nearby_users.append(other_user)
+            
+            print(nearby_users, other_user, dist, "nearby_users==")
+
+        
+
+        serializer = UserSerializer.UserFeedSerializer(nearby_users, many=True)
+        return Response({
+            "status": "success",
+            "message": "Nearby users with shared interests",
+            "data": serializer.data
+        })
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):
      serializer_class = TokenObtainSerializer
  

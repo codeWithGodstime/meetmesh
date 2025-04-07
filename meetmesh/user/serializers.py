@@ -8,6 +8,9 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as Si
 from .models import Profile, User, NotificationSetting
 from django_countries.fields import Country
 from django_countries.serializer_fields import CountryField
+from geopy.geocoders import Nominatim
+from django.core.exceptions import ValidationError
+from django.contrib.gis.geos import Point
 
 User = get_user_model()
 logger = logging.getLogger(__file__)
@@ -30,12 +33,51 @@ class UserSerializer:
             user = User.objects.create_user(**validated_data)        
             return user
 
+    class UserFeedSerializer(serializers.ModelSerializer):
+        occupation = serializers.CharField(source="profile.occupation")
+        bio = serializers.CharField(source="profile.bio")
+        interests = serializers.ListField(source="profile.interests")
+        profile_image = serializers.ImageField(source="profile.profile_image")
+        is_online = serializers.BooleanField(source="profile.is_online")
+        location_visibility = serializers.BooleanField(source="profile.location_visibility")
+        gender = serializers.CharField(source="profile.gender")
+        social_links = serializers.ListField(source="profile.social_links")
+        # fullname = serializers.CharField(source="fullname", read_only=True)
+        location = serializers.SerializerMethodField()
+
+        class Meta:
+            model = User
+            fields = [
+                "id",
+                "uid",
+                "fullname",
+                "email",
+                "city",
+                "country",
+                "location",
+                "occupation",
+                "bio",
+                "interests",
+                "profile_image",
+                "is_online",
+                "location_visibility",
+                "gender",
+                "social_links",
+            ]
+        
+        def get_location(self, obj):
+            if obj.location:
+                return {
+                    "latitude": obj.location.y,
+                    "longitude": obj.location.x
+                }
+            return None
 
     class UserOnBoardingSerializer(serializers.Serializer):
         bio = serializers.CharField()
         gender = serializers.CharField()
         interests = serializers.ListField(child=serializers.CharField())
-        location = serializers.ListField(child=serializers.CharField(), min_length=2, max_length=2)
+        location = serializers.ListField(child=serializers.CharField(), min_length=2, max_length=2)  # Expects city and country as list
         notifyNearby = serializers.BooleanField()
         occupation = serializers.CharField()
         profileImage = serializers.ImageField(required=False, allow_null=True)
@@ -47,9 +89,21 @@ class UserSerializer:
 
             # Unpack location
             country, city = validated_data.get("location", [None, None])
-            user.country = country
-            user.city = city
+            user.country = country  # Store country if necessary
+            user.city = city  # Store city if necessary
             user.has_completed_onboarding = True
+
+            # Geolocation using geopy (only for the city)
+            if city:
+                geolocator = Nominatim(user_agent="meetmesh_app")  # Choose a unique user agent for your app
+                location = geolocator.geocode(city)
+
+                if location:
+                    # Create a PointField (latitude, longitude)
+                    user.location = Point(location.longitude, location.latitude)  # Assuming `location` is a PointField
+                else:
+                    raise ValidationError(f"Could not find coordinates for city: {city}")
+
             user.save()
 
             # Profile updates
@@ -69,7 +123,7 @@ class UserSerializer:
 
             # Notification settings
             NotificationSetting.objects.update_or_create(
-                user=user, defaults={"notify_on_proximity": validated_data["notifyNearby"]}
+                user=user, defaults={"notify_on_proximity": validated_data["notifyNearby"]},
             )
 
             return user

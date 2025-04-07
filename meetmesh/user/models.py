@@ -1,4 +1,4 @@
-from django.db import models
+from django.contrib.gis.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
 from django_countries.fields import CountryField
@@ -7,14 +7,15 @@ from utilities.utils import BaseModelMixin
 from utilities.choices import NotificationType
 
 
-class User(AbstractUser, BaseModelMixin):
+class User(BaseModelMixin, AbstractUser):
 
     email = models.EmailField(unique=True, db_index=True)
     first_name = models.CharField(max_length=300, blank=False, null=False)
     last_name = models.CharField(max_length=300, blank=False, null=False)
     username = models.CharField(max_length=50, unique=True, null=True, blank=True)
-    city = models.CharField(max_length=30, null=True, blank=True)
-    country = CountryField(blank=True, null=True)
+    city = models.CharField(max_length=60, null=True, blank=True)
+    country = CountryField(blank=True, null=True, max_length=100)
+    location = models.PointField(blank=True, null=True)
     has_completed_onboarding = models.BooleanField(default=False)
 
     is_superuser = models.BooleanField(default=False)
@@ -48,7 +49,7 @@ class User(AbstractUser, BaseModelMixin):
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_image = models.ImageField(blank=True, null=True)
-    bio = models.TextField()
+    bio = models.TextField(blank=True, null=True)
     is_online = models.BooleanField(default=False)
     last_seen = models.DateTimeField(blank=True, null=True)
     location_visibility = models.BooleanField(default=False)
@@ -64,12 +65,12 @@ class Profile(models.Model):
     }, ...
     ]
     """
-    occupation = models.CharField(max_length=300)
+    occupation = models.CharField(max_length=300, blank=True, null=True)
 
 
 class NotificationSetting(BaseModelMixin):
     notify_on_proximity = models.BooleanField(default=True, null=True)
-    notify_radius_km = models.FloatField(blank=True, null=True)
+    notify_radius_km = models.FloatField(blank=True, default=500.0, null=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="notification_setting")
 
 
