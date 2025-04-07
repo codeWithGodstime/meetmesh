@@ -44,7 +44,7 @@ export default function Signup() {
     try {
       await signUp(data.username, data.email, data.password);
       toast("Your account has been created successfully.");
-      // navigate("/");
+      navigate("/profile-setup");
     } catch (error: any) {
       if (error) {
         for (const key in error) {

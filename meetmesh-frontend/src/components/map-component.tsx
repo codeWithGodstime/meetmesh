@@ -42,13 +42,13 @@ const createUserIcon = (user: any, isCurrentUser: boolean) => {
   })
 }
 
-interface MapComponentProps {
-  users: any[]
-  onUserClick: (user: any) => void
-  currentUser: any
-}
+// interface MapComponentProps {
+//   users: any[]
+//   onUserClick: (user: any) => void
+//   currentUser: any
+// }
 
-export default function MapComponent({ users, onUserClick, currentUser }: MapComponentProps) {
+export default function MapComponent() {
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<{ [key: number]: L.Marker }>({})
 
@@ -76,37 +76,37 @@ export default function MapComponent({ users, onUserClick, currentUser }: MapCom
 
   // Update markers when users data changes
   useEffect(() => {
-    if (!mapRef.current || !users.length) return
+    // if (!mapRef.current || !users.length) return
 
-    // Clear existing markers
-    Object.values(markersRef.current).forEach((marker) => {
-      marker.remove()
-    })
-    markersRef.current = {}
+    // // Clear existing markers
+    // Object.values(markersRef.current).forEach((marker) => {
+    //   marker.remove()
+    // })
+    // markersRef.current = {}
 
-    // Add new markers
-    users.forEach((user) => {
-      const isCurrentUser = user.id === currentUser?.id
-      const icon = createUserIcon(user, isCurrentUser)
+    // // Add new markers
+    // users.forEach((user) => {
+    //   const isCurrentUser = user.id === currentUser?.id
+    //   const icon = createUserIcon(user, isCurrentUser)
 
-      // Skip adding click handler for current user
-      if (!isCurrentUser) {
-        const marker = L.marker([user.lat, user.lng], { icon })
-          .addTo(mapRef.current!)
-          .bindTooltip(user.name)
-          .on("click", () => {
-            onUserClick(user)
-          })
+    //   // Skip adding click handler for current user
+    //   if (!isCurrentUser) {
+    //     const marker = L.marker([user.lat, user.lng], { icon })
+    //       .addTo(mapRef.current!)
+    //       .bindTooltip(user.name)
+    //       .on("click", () => {
+    //         onUserClick(user)
+    //       })
 
-        markersRef.current[user.id] = marker
-      } else {
-        // Just add the marker without click handler for current user
-        const marker = L.marker([user.lat, user.lng], { icon }).addTo(mapRef.current!).bindTooltip(`${user.name} (You)`)
+    //     markersRef.current[user.id] = marker
+    //   } else {
+    //     // Just add the marker without click handler for current user
+    //     const marker = L.marker([user.lat, user.lng], { icon }).addTo(mapRef.current!).bindTooltip(`${user.name} (You)`)
 
-        markersRef.current[user.id] = marker
-      }
-    })
-  }, [users, onUserClick, currentUser])
+    //     markersRef.current[user.id] = marker
+    //   }
+    // })
+  }, [])
 
   return <div id="map" className="h-full w-full z-0" />
 }
