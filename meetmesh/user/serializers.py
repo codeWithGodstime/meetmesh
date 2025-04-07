@@ -16,8 +16,6 @@ class UserSerializer:
             model = User
             fields = (
                 "email",
-                "first_name",
-                "last_name",
                 "password",
                 "username",
             )
@@ -34,10 +32,7 @@ class UserSerializer:
         class Meta:
             model = User
             fields = (
-                "created_at",
                 "email",
-                "first_name",
-                "last_name",
                 "username",
                 "id",
             )

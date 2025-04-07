@@ -1,17 +1,15 @@
-"use client"
-
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { MapPin } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { signUp } from "@/services/auth"
-import { toast } from "sonner"
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { signUp } from "@/services/auth";
+import { toast } from "sonner";
 
 const signupSchema = z
   .object({
@@ -23,13 +21,13 @@ const signupSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
-  })
+  });
 
-type SignupFormValues = z.infer<typeof signupSchema>
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function Signup() {
-  const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -39,24 +37,33 @@ export default function Signup() {
       password: "",
       confirmPassword: "",
     },
-  })
+  });
 
   const onSubmit = async (data: SignupFormValues) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await signUp(data.username, data.email, data.password)
-      toast(
-        "Your account has been created successfully."
-      )
-      navigate("/")
-    } catch (error) {
-      toast(
-        "An error occurred during signup. Please try again.",
-      )
+      await signUp(data.username, data.email, data.password);
+      toast("Your account has been created successfully.");
+      // navigate("/");
+    } catch (error: any) {
+      if (error) {
+        for (const key in error) {
+          if (form.getValues().hasOwnProperty(key)) {
+            form.setError(key as keyof SignupFormValues, {
+              type: "server",
+              message: error[key][0],
+            });
+          } else if (key === "non_field_errors") {
+            toast(error[key][0]);
+          }
+        }
+      } else {
+        toast("An unexpected error occurred.");
+      }
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
@@ -148,6 +155,5 @@ export default function Signup() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
-

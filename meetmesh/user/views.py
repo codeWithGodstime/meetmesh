@@ -25,7 +25,10 @@ class UserViewset(viewsets.ModelViewSet):
 
         serializer = UserSerializer.UserCreateSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            response = Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            user = serializer.save()
+
+            response_serializer = self.get_serializer(user)
+            response = Response(data=response_serializer.data, status=status.HTTP_201_CREATED)
             return response
         else:
             logger.error(f"User registration failed due to invalid data: {serializer.errors}")
@@ -35,7 +38,6 @@ class UserViewset(viewsets.ModelViewSet):
     def me(self, request, *args, **kwargs):
         user = request.user
         serializer = UserSerializer.UserRetrieveSerializer(user)
-
         return Response(data=serializer.data)
 
     @action(methods=["post"], detail=False, permission_classes=[permissions.AllowAny])

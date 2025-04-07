@@ -1,8 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
+from django_countries.fields import CountryField
 from user.manager import CustomUserManager
-from utils import BaseModelMixin
+from utilities.utils import BaseModelMixin
+from utilities.choices import NotificationType
 
 
 class User(AbstractUser, BaseModelMixin):
@@ -12,7 +14,7 @@ class User(AbstractUser, BaseModelMixin):
     last_name = models.CharField(max_length=300, blank=False, null=False)
     username = models.CharField(max_length=50, unique=True, null=True, blank=True)
     city = models.CharField(max_length=30, null=True, blank=True)
-    # country = 
+    country = CountryField(blank=True, null=True)
 
     is_superuser = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -36,9 +38,7 @@ class User(AbstractUser, BaseModelMixin):
             subject,
             message,
             from_email,
-            [
-                self.email
-            ],
+            [self.email],
             fail_silently=True,
             **kwargs,
         )
@@ -46,12 +46,12 @@ class User(AbstractUser, BaseModelMixin):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    profile_image = models.ImageField()
+    profile_image = models.ImageField(blank=True, null=True)
     bio = models.TextField()
     is_online = models.BooleanField(default=False)
     last_seen = models.DateTimeField()
     location_visibility = models.BooleanField(default=False)
-    social_links = models.JSONField(blank=True, null=True)
+    social_links = models.JSONField(blank=True, null=True, default=list)
     """
     [
     {
@@ -71,9 +71,9 @@ class NotificationSetting(BaseModelMixin):
 class Notification(BaseModelMixin):
     receiver = models.ForeignKey("User", on_delete=models.CASCADE, related_name='notification_receiver')
     sender = models.ForeignKey("User", on_delete=models.CASCADE, related_name='notification_sender')
-    type = models.CharField(max_length=20)
+    type = models.CharField(max_length=20, choices=NotificationType.choices)
     is_read = models.BooleanField(default=False)
-    metadata = models.JSONField()
+    metadata = models.JSONField(blank=True, null=True, default=dict)
     """e.g
     {
      message: "John just arrivend in akwa reach out to him"
@@ -89,4 +89,4 @@ class Message(BaseModelMixin):
     content = models.TextField()
     sender = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default='deleted_account_user', related_name='message_sender')
     is_read = models.BooleanField(default=False)
-    conversation = models.ForeignKey(Conversation, related_name='messages')
+    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
