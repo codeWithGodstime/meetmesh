@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as SimpleJWTTokenObtainPairSerializer
@@ -239,3 +240,54 @@ class MessageSerializer:
                 "sender",
                 "conversation"
             )
+
+
+class ConversationSerializer:
+    class ConversationListSerializer(serializers.ModelSerializer):
+        """
+        receiver_avatar
+        last_message_content
+        time
+        is_read
+        number_of_unread_conversation
+        fullname
+        id
+        """
+        conversation_partner = serializers.SerializerMethodField()
+        content = serializers.SerializerMethodField()
+        last_message_time = serializers.SerializerMethodField()
+        number_of_unread_messages = serializers.SerializerMethodField()
+
+        class Meta:
+            model = Conversation
+            fields = (
+                "id",
+                "uid",
+                "conversation_partner",
+                "content",
+                "last_message_time",
+                "number_of_unread_messages",
+            )
+
+        def get_conversation_partner(self, obj):
+            partner = obj.get_receiver(obj)
+            return {
+                "avatar": getattr(partner.profile.profile_image, 'url', None) if partner and partner.profile.profile_image else None,
+                "fullname": partner.fullname.strip() or partner.username.strip() or partner.email
+            }
+        
+        def get_content(self, obj):
+            last_msg = obj.messages.order_by("-created_at").first()
+            return last_msg.content if last_msg else None
+
+        def get_last_message_time(self, obj):
+            last_msg = obj.messages.order_by("-created_at").first()
+            return last_msg.created_at if last_msg else None
+
+        def get_number_of_unread_messages(self, obj):
+            request = self.context.get("request")
+            if request:
+                # filter where the message is unread and sender is the current user
+                return obj.messages.filter(Q(is_read=False) & ~Q(sender=request.user)).count()
+            return 0
+        

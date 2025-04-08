@@ -12,6 +12,9 @@ from utilities.choices import NotificationType
 class Conversation(BaseModelMixin):
     participants = models.ManyToManyField("User", related_name='conversations')
 
+    def get_receiver(self, current_user):
+        return self.participants.exclude(id=current_user.id).first()
+    
     @classmethod
     def get_room(cls, receiver, sender):
         users = [receiver, sender]

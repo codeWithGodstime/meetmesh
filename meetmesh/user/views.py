@@ -12,10 +12,10 @@ from django.db import transaction
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Conversation
+from .models import Conversation, Message
 
 
-from .serializers import UserSerializer, TokenObtainSerializer, MessageSerializer
+from .serializers import UserSerializer, TokenObtainSerializer, MessageSerializer, ConversationSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -178,6 +178,11 @@ class UserViewset(viewsets.ModelViewSet):
         )
         message_serializer.is_valid(raise_exception=True)
 
+
+class ConversationViewset(viewsets.ModelViewSet):
+    queryset = Conversation.objects.all()
+    serializer_class = ConversationSerializer.ConversationListSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):
      serializer_class = TokenObtainSerializer
