@@ -1,6 +1,7 @@
 import logging
 from rest_framework import permissions
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
@@ -11,8 +12,10 @@ from django.db import transaction
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import Conversation
 
-from .serializers import UserSerializer, TokenObtainSerializer
+
+from .serializers import UserSerializer, TokenObtainSerializer, MessageSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +151,6 @@ class UserViewset(viewsets.ModelViewSet):
             ).km
 
             if dist <= radius_km:
-                print("reached here")
                 other_interests = set(other_user.profile.interests or [])
                 nearby_users.append(other_user) #TODO remove later
 
@@ -156,16 +158,27 @@ class UserViewset(viewsets.ModelViewSet):
                 #     other_user.distance_km = round(dist, 1)
                 #     nearby_users.append(other_user)
             
-            print(nearby_users, other_user, dist, "nearby_users==")
-
-        
-
         serializer = UserSerializer.UserFeedSerializer(nearby_users, many=True)
         return Response({
             "status": "success",
             "message": "Nearby users with shared interests",
             "data": serializer.data
         })
+
+    @action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
+    def dm_user(self, request, *args, **kwargs):
+        sender = request.user
+        receiver = self.get_object()
+
+        room = Conversation.get_room(receiver, sender)
+        message_serializer = MessageSerializer.MessageCreateSerializer(
+            conversation = room,
+            sender=sender,
+            content=data['content']
+        )
+        message_serializer.is_valid(raise_exception=True)
+
+
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):
      serializer_class = TokenObtainSerializer
  

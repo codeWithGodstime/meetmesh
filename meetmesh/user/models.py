@@ -1,10 +1,29 @@
 from django.contrib.gis.db import models
+from django.db.models import Q
+from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
 from django_countries.fields import CountryField
 from user.manager import CustomUserManager
 from utilities.utils import BaseModelMixin
 from utilities.choices import NotificationType
+
+
+class Conversation(BaseModelMixin):
+    participants = models.ManyToManyField("User", related_name='conversations')
+
+    @classmethod
+    def get_room(cls, receiver, sender):
+        users = [receiver, sender]
+        if len(users) < 2:
+            raise ValueError("At least two users must be provided")
+
+        ids = [x if type(x) == str else x.id for x in users]
+
+        room_id = ".".join(ids)
+
+        room = cls.objects.get_or_create(id=room_id)[0]
+        return room
 
 
 class User(BaseModelMixin, AbstractUser):
@@ -33,6 +52,22 @@ class User(BaseModelMixin, AbstractUser):
     @property
     def fullname(self):
         return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def conversations(self):
+        return Conversation.objects.filter(
+            Q(participants=self)
+        )
+    
+    @property
+    def channel_name(self):
+        key = f"user_channel_name.{self.id}"
+        return cache.get(key)
+
+    @channel_name.setter
+    def channel_name(self, value):
+        key = f"user_channel_name.{self.id}"
+        return cache.set(key, value, 60 * 60 * 24)
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
@@ -86,9 +121,6 @@ class Notification(BaseModelMixin):
      sender_profile_link: mesh.com/john
     }
     """
-
-class Conversation(BaseModelMixin):
-    participants = models.ManyToManyField(User, related_name='conversations')
 
 
 class Message(BaseModelMixin):

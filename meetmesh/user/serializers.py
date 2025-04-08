@@ -12,6 +12,9 @@ from geopy.geocoders import Nominatim
 from django.core.exceptions import ValidationError
 from django.contrib.gis.geos import Point
 
+
+from .models import Conversation, Message
+
 User = get_user_model()
 logger = logging.getLogger(__file__)
 
@@ -224,3 +227,15 @@ class TokenObtainSerializer(SimpleJWTTokenObtainPairSerializer):
          user_data = UserSerializer.UserRetrieveSerializer(user).data
          data['data'] = user_data
          return data
+
+
+class MessageSerializer:
+
+    class MessageCreateSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Message
+            fields = (
+                "content",
+                "sender",
+                "conversation"
+            )
