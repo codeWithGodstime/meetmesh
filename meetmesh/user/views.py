@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework_simplejwt.views import TokenObtainPairView as SimpleJWTTokenObtainPairView
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Count
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -118,7 +119,7 @@ class UserViewset(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @transaction.atomic
-    @action(methods=['post'], detail=False, permission_classes=[permissions.IsAuthenticated]) #TODO make this authenticated action
+    @action(methods=['post'], detail=False, permission_classes=[permissions.IsAuthenticated]) 
     def complete_onboarding(self, request, *args, **kwargs):
         serializer = UserSerializer.UserOnBoardingSerializer(data=request.data)
         if serializer.is_valid():
@@ -171,12 +172,17 @@ class UserViewset(viewsets.ModelViewSet):
         receiver = self.get_object()
 
         room = Conversation.get_room(receiver, sender)
+        print("Conversation room==", room)
         message_serializer = MessageSerializer.MessageCreateSerializer(
-            conversation = room,
-            sender=sender,
-            content=data['content']
+            data=dict(
+                conversation = room.id,
+                sender=sender.id,
+                content=request.data['content']
+            )
         )
         message_serializer.is_valid(raise_exception=True)
+        message_serializer.save()
+        return Response(data=dict(message="Send successfully"))
 
 
 class ConversationViewset(viewsets.ModelViewSet):
@@ -184,6 +190,31 @@ class ConversationViewset(viewsets.ModelViewSet):
     serializer_class = ConversationSerializer.ConversationListSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field ='uid'
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset().annotate(
+            message_count=Count('messages')
+        ).filter(message_count__gt=0)
+
+        self.queryset = queryset
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        current_user = request.user
+        receiver = request.data['receiver']
+
+        serializer = ConversationSerializer.ConversationCreateSerializer(
+            data=dict(
+                receiver=receiver,
+            ),
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        conversation = serializer.save()
+        
+        print(serializer.data, "SERIALIERER")
+
+        return Response(data=dict(message="Conversation Created", uid=conversation.uid))
 
     def retrieve(self, request, *args, **kwargs):
         conversation = self.get_object() 

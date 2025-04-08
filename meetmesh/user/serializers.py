@@ -257,6 +257,27 @@ class MessageSerializer:
 
 
 class ConversationSerializer:
+
+    class ConversationCreateSerializer(serializers.Serializer):
+        receiver = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+        def create(self, validated_data):
+            sender = self.context.get('request').user
+            receiver = validated_data['receiver']
+
+            try:
+                conversation = Conversation.get_room(sender, receiver)
+                conversation.save()
+            except ValueError:
+                raise serializers.ValidationError("There must be at least two users in a conversation.")
+
+            return conversation  # ✅ Return the Conversation instance
+
+        def to_representation(self, instance):
+            return {
+                "uid": instance.uid
+            }
+        
     class ConversationListSerializer(serializers.ModelSerializer):
         conversation_partner = serializers.SerializerMethodField()
         content = serializers.SerializerMethodField()
@@ -312,5 +333,7 @@ class ConversationSerializer:
             partner = obj.get_receiver(obj)
             return {
                 "avatar": getattr(partner.profile.profile_image, 'url', None) if partner and partner.profile.profile_image else None,
-                "fullname": partner.fullname.strip() or partner.username.strip() or partner.email
+                "fullname": partner.fullname.strip() or partner.username.strip() or partner.email,
+                "id": partner.id,
+                "uid": partner.uid
             }

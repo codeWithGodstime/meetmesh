@@ -25,10 +25,10 @@ DATABASES = {
     } 
 }
 
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(days=3),
+SIMPLE_JWT = {  
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=3), 
     "REFRESH_TOKEN_LIFETIME": timedelta(days=6),
-    "SIGNING_KEY": SECRET_KEY
+    "SIGNING_KEY": SECRET_KEY  
 }   
 
 REST_FRAMEWORK = {

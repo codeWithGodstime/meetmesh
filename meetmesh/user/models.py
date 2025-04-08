@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
@@ -17,16 +17,17 @@ class Conversation(BaseModelMixin):
     
     @classmethod
     def get_room(cls, receiver, sender):
-        users = [receiver, sender]
-        if len(users) < 2:
-            raise ValueError("At least two users must be provided")
+        if not receiver or not sender:
+            raise ValueError("Receiver and sender must be provided")
 
-        ids = [x if type(x) == str else x.id for x in users]
+        conversation = cls.objects.filter(participants=receiver).filter(participants=sender).first()
+        print("Trying conversation", conversation)
 
-        room_id = ".".join(ids)
+        if not conversation:
+            conversation = cls.objects.create()
+            conversation.participants.add(receiver, sender)
 
-        room = cls.objects.get_or_create(id=room_id)[0]
-        return room
+        return conversation
 
 
 class User(BaseModelMixin, AbstractUser):
