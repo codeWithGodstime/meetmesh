@@ -241,18 +241,23 @@ class MessageSerializer:
                 "conversation"
             )
 
+    class MessageRetrieveSerializer(serializers.ModelSerializer):
+        is_sender = serializers.SerializerMethodField()
+
+        class Meta:
+            model = Message
+            fields = ('id', 'content', 'sender', 'created_at', 'is_sender', 'is_read')
+
+        def get_is_sender(self, obj):
+            # Compare if the message sender is the current user
+            request = self.context.get('request')
+            if request and obj.sender == request.user:
+                return True
+            return False
+
 
 class ConversationSerializer:
     class ConversationListSerializer(serializers.ModelSerializer):
-        """
-        receiver_avatar
-        last_message_content
-        time
-        is_read
-        number_of_unread_conversation
-        fullname
-        id
-        """
         conversation_partner = serializers.SerializerMethodField()
         content = serializers.SerializerMethodField()
         last_message_time = serializers.SerializerMethodField()
@@ -290,4 +295,22 @@ class ConversationSerializer:
                 # filter where the message is unread and sender is the current user
                 return obj.messages.filter(Q(is_read=False) & ~Q(sender=request.user)).count()
             return 0
+    
+    class ConversationDetailSerializer(serializers.ModelSerializer):
+
+        messages = MessageSerializer.MessageRetrieveSerializer(many=True)
+        conversation_partner = serializers.SerializerMethodField()
+        class Meta:
+            model = Conversation
+            fields = (
+                "id",
+                "messages",
+                "conversation_partner"
+            )
         
+        def get_conversation_partner(self, obj):
+            partner = obj.get_receiver(obj)
+            return {
+                "avatar": getattr(partner.profile.profile_image, 'url', None) if partner and partner.profile.profile_image else None,
+                "fullname": partner.fullname.strip() or partner.username.strip() or partner.email
+            }

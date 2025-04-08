@@ -131,3 +131,6 @@ class Message(BaseModelMixin):
     sender = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default='deleted_account_user', related_name='message_sender')
     is_read = models.BooleanField(default=False)
     conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['created_at']

@@ -183,6 +183,13 @@ class ConversationViewset(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer.ConversationListSerializer
     permission_classes = [permissions.IsAuthenticated]
+    lookup_field ='uid'
+
+    def retrieve(self, request, *args, **kwargs):
+        conversation = self.get_object() 
+        
+        serializer = ConversationSerializer.ConversationDetailSerializer(conversation, context={'request': request})
+        return Response(serializer.data)
 
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):
      serializer_class = TokenObtainSerializer
