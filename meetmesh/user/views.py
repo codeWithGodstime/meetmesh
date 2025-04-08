@@ -142,7 +142,9 @@ class UserViewset(viewsets.ModelViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
 
         nearby_users = []
-        for other_user in User.objects.exclude(id=user.id).select_related('profile'):
+        other_users = User.objects.exclude(id=user.id).select_related('profile')
+        print(len(other_users), "Other users length")
+        for other_user in other_users:
             if not other_user.location:
                 continue
 
@@ -191,21 +193,31 @@ class ConversationViewset(viewsets.ModelViewSet):
     lookup_field ='uid'
 
     def list(self, request, *args, **kwargs):
-
         latest_message_time = Subquery(
             Message.objects.filter(conversation=OuterRef('pk'))
-            .order_by('-created_at')  # or 'timestamp' or your actual field
+            .order_by('-created_at')
             .values('created_at')[:1]
         )
 
-        queryset = self.get_queryset().annotate(
+        queryset = self.get_queryset().filter(
+            participants=request.user
+        ).annotate(
             message_count=Count('messages'),
             last_message_time=latest_message_time
         ).filter(
             message_count__gt=0
         ).order_by('-last_message_time')  # Most recent first
+
         self.queryset = queryset
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True, context={'request': request})
         return super().list(request, *args, **kwargs)
+
 
     def create(self, request, *args, **kwargs):
         current_user = request.user

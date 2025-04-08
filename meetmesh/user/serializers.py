@@ -296,7 +296,8 @@ class ConversationSerializer:
             )
 
         def get_conversation_partner(self, obj):
-            partner = obj.get_receiver(obj)
+            current_user = self.context.get('request').user
+            partner = obj.get_receiver(current_user)
             return {
                 "avatar": getattr(partner.profile.profile_image, 'url', None) if partner and partner.profile.profile_image else None,
                 "fullname": partner.fullname.strip() or partner.username.strip() or partner.email
@@ -330,7 +331,8 @@ class ConversationSerializer:
             )
         
         def get_conversation_partner(self, obj):
-            partner = obj.get_receiver(obj)
+            current_user = self.context.get("request").user
+            partner = obj.get_receiver(current_user)
             return {
                 "avatar": getattr(partner.profile.profile_image, 'url', None) if partner and partner.profile.profile_image else None,
                 "fullname": partner.fullname.strip() or partner.username.strip() or partner.email,
