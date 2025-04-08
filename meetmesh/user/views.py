@@ -9,7 +9,7 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework_simplejwt.views import TokenObtainPairView as SimpleJWTTokenObtainPairView
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Count
+from django.db.models import OuterRef, Subquery, Count, Max
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -172,7 +172,6 @@ class UserViewset(viewsets.ModelViewSet):
         receiver = self.get_object()
 
         room = Conversation.get_room(receiver, sender)
-        print("Conversation room==", room)
         message_serializer = MessageSerializer.MessageCreateSerializer(
             data=dict(
                 conversation = room.id,
@@ -192,10 +191,19 @@ class ConversationViewset(viewsets.ModelViewSet):
     lookup_field ='uid'
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset().annotate(
-            message_count=Count('messages')
-        ).filter(message_count__gt=0)
 
+        latest_message_time = Subquery(
+            Message.objects.filter(conversation=OuterRef('pk'))
+            .order_by('-created_at')  # or 'timestamp' or your actual field
+            .values('created_at')[:1]
+        )
+
+        queryset = self.get_queryset().annotate(
+            message_count=Count('messages'),
+            last_message_time=latest_message_time
+        ).filter(
+            message_count__gt=0
+        ).order_by('-last_message_time')  # Most recent first
         self.queryset = queryset
         return super().list(request, *args, **kwargs)
 
