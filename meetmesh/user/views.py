@@ -187,7 +187,8 @@ class ConversationViewset(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         conversation = self.get_object() 
-        
+        # Mark all messages in this conversation as read
+        conversation.messages.filter(is_read=False).update(is_read=True)
         serializer = ConversationSerializer.ConversationDetailSerializer(conversation, context={'request': request})
         return Response(serializer.data)
 
