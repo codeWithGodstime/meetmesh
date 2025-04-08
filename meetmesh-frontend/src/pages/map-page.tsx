@@ -23,10 +23,39 @@ const fetchUserFeed = async () => {
   return { data, currentUser }
 }
 
+
+
+
+
 // Modal component here or import it
 function UserProfileModal({ user, onClose }: { user: any; onClose: () => void }) {
   const navigate = useNavigate()
   if (!user) return null
+
+  const getConversation = async (receiver_id: string) => {
+
+    const accessToken = localStorage.getItem("accessToken")
+
+    const response = await fetch(`${API_ENDPOINT}/conversations/`, {
+      method: 'POST',
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ "receiver": receiver_id })
+    })
+
+    if (!response.ok) {
+      throw new Error("Something happenend")
+    }
+
+    const data = await response.json()
+
+    console.log(data, "for conversation")
+    navigate(`/messages/${data.uid}`)
+
+    return { data }
+  }
 
   return (
     <div className="fixed inset-0 z-50 bg-transparent bg-opacity-40 flex items-center justify-center">
@@ -62,7 +91,7 @@ function UserProfileModal({ user, onClose }: { user: any; onClose: () => void })
           <div className="flex flex-col gap-2">
             <button
               className="bg-primary text-white py-2 rounded hover:bg-primary/90 transition"
-              onClick={() => navigate(`/messages/${user.id}`)}
+              onClick={() => getConversation(user.id)}
             >
               Message
             </button>

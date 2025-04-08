@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, MoreVertical, Send } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { formatDistanceToNow } from "date-fns"
+import { API_ENDPOINT } from "@/services/auth"
 
 
 export default function MessageUI({ messages }) {
@@ -30,7 +31,7 @@ function MessageList({ messages }) {
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         {messages.map((message) => (
-          <Link to={`${message.uid}`}>
+          <Link key={message.id} to={`${message.uid}`}>
             <Card
               key={message.id}
               className={`mb-2 cursor-pointer hover:bg-gray-100 transition-colors ${message.number_of_unread_messages >= 1 ? "border-l-4 border-l-primary" : ""}`}
@@ -72,16 +73,38 @@ export function MessageDetail({data}) {
 
   const [newMessageText, setNewMessageText] = useState("")
 
-  const handleSendMessage = () => {
-    if (!newMessageText.trim()) return
-
-    // In a real app, you would send this to an API
-    console.log("Sending message:", newMessageText)
-
-    // Clear the input
-    setNewMessageText("")
-  }
-
+  const handleSendMessage = async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!newMessageText.trim() || !accessToken) return;
+  
+    try {
+      const response = await fetch(`${API_ENDPOINT}/users/${data.conversation_partner.id}/dm_user/`, {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ content: newMessageText })
+      });
+  
+      if (!response.ok) {
+        console.error("Failed to send message:", response.statusText);
+        return;
+      }
+  
+      const result = await response.json();
+      console.log("Message sent:", result);
+  
+      // Optionally update your local message state or notify WebSocket
+      // updateMessages((prev) => [...prev, result.data]); // Example if you're using state
+      // socket.send(JSON.stringify(result.data)); // If using WebSocket
+      // Clear the input
+      setNewMessageText("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
+  
 
   return (
     <div className="flex flex-col h-full">
