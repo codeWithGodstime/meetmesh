@@ -89,7 +89,7 @@ class UserSerializer:
         bio = serializers.CharField()
         gender = serializers.CharField()
         interests = serializers.ListField(child=serializers.CharField())
-        location = serializers.ListField(child=serializers.CharField(), min_length=100, max_length=2)  # Expects city and country as list
+        location = serializers.ListField(child=serializers.CharField(), max_length=200)  # Expects city and country as list
         notifyNearby = serializers.BooleanField()
         occupation = serializers.CharField()
         profileImage = serializers.ImageField(required=False, allow_null=True)
@@ -107,14 +107,17 @@ class UserSerializer:
 
             # Geolocation using geopy (only for the city)
             if city:
-                geolocator = Nominatim(user_agent="meetmesh_app")  # Choose a unique user agent for your app
-                location = geolocator.geocode(city)
-
-                if location:
-                    # Create a PointField (latitude, longitude)
-                    user.location = Point(location.longitude, location.latitude)  # Assuming `location` is a PointField
-                else:
-                    raise ValidationError(f"Could not find coordinates for city: {city}")
+                try:
+                    geolocator = Nominatim(user_agent="meetmesh_app")  # Choose a unique user agent for your app
+                    location = geolocator.geocode(city)
+                        
+                    if location:
+                        # Create a PointField (latitude, longitude)
+                        user.base_location = Point(location.longitude, location.latitude)  # Assuming `location` is a PointField
+                    else:
+                        raise ValidationError(f"Could not find coordinates for city: {city}")
+                except Exception as e:
+                    logger.error(f"Could not geocode {city}", e)
 
             user.save()
 
