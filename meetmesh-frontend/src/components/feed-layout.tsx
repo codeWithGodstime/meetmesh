@@ -1,9 +1,17 @@
 import type React from "react"
-import { Outlet } from "react-router"
+import { Outlet, useNavigate } from "react-router"
 import { Home, MessageSquare, Settings, User } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useAuth } from "@/contexts/auth-context"
 
 const FeedLayout = () => {
+  const {user} = useAuth()
+  const navigate = useNavigate()
+
+  if(!user) {
+    navigate("/login")
+  }
+
   return (
     <>
       <Outlet />
