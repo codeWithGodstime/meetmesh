@@ -1,12 +1,7 @@
-import { Badge } from "@/components/ui/badge"
-
-import { useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Slider } from "@/components/ui/slider"
@@ -15,6 +10,27 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Bell, Globe, MapPin, Search, Shield, User, Users } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import { API_ENDPOINT } from "@/services/auth"
+import { toast } from "sonner"
+
+
+const getUserPreference = async () => {
+  const accessToken = localStorage.getItem("accessToken")
+  const response = await fetch(`${API_ENDPOINT}/users/user_preferences/`, {
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${accessToken}`
+    }
+  })
+  const data = await response.json()
+
+  if (!response.ok) {
+    throw new Error(`Something happenend ${data}`)
+  }
+
+  return data
+}
 
 // Define the form schema
 const formSchema = z.object({
@@ -47,27 +63,46 @@ const formSchema = z.object({
 type SettingsFormValues = z.infer<typeof formSchema>
 
 export default function UserSettingsPage() {
+  // get user_id
+  const user = JSON.parse(localStorage.getItem("user")|| {})
+    // Initialize form with default values
+    const form = useForm<SettingsFormValues>({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        notify_radius_km: 10,
+        who_can_discover_me: "EVERYONE",
+        meetup_periods: ["evening", "weekend"],
+        notify_on_proximity: true,
+        notify_on_meetup_invites: true,
+        notify_on_profile_view: false,
+        auto_accept_meetup_request: false,
+        require_profile_completion: true,
+        only_verified_user_can_message: false,
+        dark_theme: false
+      },
+    })
 
-  // Initialize form with default values
-  const form = useForm<SettingsFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      notify_radius_km: 10,
-      who_can_discover_me: "EVERYONE",
-      meetup_periods: ["evening", "weekend"],
-      notify_on_proximity: true,
-      notify_on_meetup_invites: true,
-      notify_on_profile_view: false,
-      auto_accept_meetup_request: false,
-      require_profile_completion: true,
-      only_verified_user_can_message: false,
-      dark_theme: false
-    },
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['user_preferences'],
+    queryFn: ()=> getUserPreference()
   })
+
+  if (isLoading) {
+    return <h2>Loading ....</h2>
+  }
+
+  if (isError) {
+    toast("Something happeend, Reload the page!")
+    console.log(error)
+  }
+
+  console.log(data)
+  form.reset(data)
 
   function onSubmit(data: SettingsFormValues) {
     console.log("Settings updated:", data)
     // In a real app, you would save these settings to your backend
+
   }
 
   return (
