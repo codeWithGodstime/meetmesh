@@ -53,15 +53,16 @@ export const getCurrentUser = async () => {
 }
 
 
-export const postAPIMethod = async (requestData: any) => {
+export const postAPIMethod = async (url:string, requestData: any) => {
     const accessToken = localStorage.getItem("accessToken");
 
-    const res = await fetch(`${API_ENDPOINT}/users/complete_onboarding/`, {
+    const res = await fetch(`${API_ENDPOINT}/${url}/`, {
         method: "POST",
         headers: {
-            Authorization: `Bearer ${accessToken}`
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
         },
-        body: requestData
+        body: JSON.stringify(requestData)
     });
 
     const data = await res.json();
@@ -70,5 +71,26 @@ export const postAPIMethod = async (requestData: any) => {
         throw data;
     }
 
+    return data;
+}
+
+
+export const putAPIMethod = async (url:string, requestData: any) => {
+    const accessToken = localStorage.getItem("accessToken");
+
+    const res = await fetch(`${API_ENDPOINT}/${url}/`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
+        },
+        body: JSON.stringify(requestData)
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw data;
+    }
     return data;
 }

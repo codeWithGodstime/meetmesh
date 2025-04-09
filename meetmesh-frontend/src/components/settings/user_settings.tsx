@@ -10,9 +10,10 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { Bell, Globe, MapPin, Search, Shield, User, Users } from "lucide-react"
-import { useQuery } from "@tanstack/react-query"
-import { API_ENDPOINT } from "@/services/auth"
+import { useQuery, useMutation } from "@tanstack/react-query"
+import { API_ENDPOINT, putAPIMethod } from "@/services/auth"
 import { toast } from "sonner"
+import { useEffect } from "react"
 
 
 const getUserPreference = async () => {
@@ -39,7 +40,7 @@ const formSchema = z.object({
 
   // Discovery Preferences
   who_can_discover_me: z.enum(["EVERYONE", "VERIFIED_USER", "ONLY_ME"]),
-  meetup_periods: z.array(z.string()).min(1, "Select at least one preferred time"),
+  meetup_periods: z.array(z.object<any>()).optional(),
 
   // Profile Visibility
   show_profile_of_people_meet: z.boolean().default(true),
@@ -64,46 +65,63 @@ type SettingsFormValues = z.infer<typeof formSchema>
 
 export default function UserSettingsPage() {
   // get user_id
-  const user = JSON.parse(localStorage.getItem("user")|| {})
-    // Initialize form with default values
-    const form = useForm<SettingsFormValues>({
-      resolver: zodResolver(formSchema),
-      defaultValues: {
-        notify_radius_km: 10,
-        who_can_discover_me: "EVERYONE",
-        meetup_periods: ["evening", "weekend"],
-        notify_on_proximity: true,
-        notify_on_meetup_invites: true,
-        notify_on_profile_view: false,
-        auto_accept_meetup_request: false,
-        require_profile_completion: true,
-        only_verified_user_can_message: false,
-        dark_theme: false
-      },
-    })
+  const user = JSON.parse(localStorage.getItem("user") || {})
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['user_preferences'],
-    queryFn: ()=> getUserPreference()
+  const mutation = useMutation({
+    mutationFn: (data) => putAPIMethod(`users/${user['id']}/update_user_preferences`, data),
+    onSuccess: () => {
+      toast("Your preferernce have been updated successfully")
+    },
+    onError: () => {
+      toast("Something Happenned try again!")
+    }
   })
+
+  // Initialize form with default values
+  const form = useForm<SettingsFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      notify_radius_km: 10,
+      who_can_discover_me: "EVERYONE",
+      meetup_periods: [],
+      notify_on_proximity: true,
+      notify_on_meetup_invites: true,
+      notify_on_profile_view: false,
+      auto_accept_meetup_request: false,
+      require_profile_completion: true,
+      only_verified_user_can_message: false,
+      dark_theme: false
+    },
+  })
+
+  const { data, isLoading, isError, error, isSuccess } = useQuery({
+    queryKey: ['user_preferences'],
+    queryFn: () => getUserPreference(),
+    retry: false
+  })
+
+  useEffect(() => {
+    if (data) {
+      form.reset(data) // This will only reset once the data is available
+    }
+    console.log(form)
+  }, [data, form]) // Only run when data changes
 
   if (isLoading) {
     return <h2>Loading ....</h2>
   }
 
   if (isError) {
-    toast("Something happeend, Reload the page!")
     console.log(error)
   }
-
-  console.log(data)
-  form.reset(data)
 
   function onSubmit(data: SettingsFormValues) {
     console.log("Settings updated:", data)
     // In a real app, you would save these settings to your backend
-
+    mutation.mutate(data)
   }
+
+
 
   return (
     <div className="max-w-full mx-auto">
@@ -131,7 +149,7 @@ export default function UserSettingsPage() {
                             min={1}
                             max={500}
                             step={1}
-                            defaultValue={[field.value]}
+                            value={[field.value ?? 1]}
                             onValueChange={(value) => field.onChange(value[0])}
                           />
                           <div className="flex justify-between text-xs text-muted-foreground">

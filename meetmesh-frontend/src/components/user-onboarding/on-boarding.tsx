@@ -99,7 +99,7 @@ export default function OnboardingForm() {
     })
   
     try {
-      await postAPIMethod(formData)
+      await postAPIMethod("complete_onboarding", formData)
   
       navigate("/profile")
     } catch (error) {
