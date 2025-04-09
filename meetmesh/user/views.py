@@ -189,18 +189,28 @@ class UserViewset(viewsets.ModelViewSet):
         message_serializer.save()
         return Response(data=dict(message="Send successfully"))
 
-    @action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
-    def user_preferences(self, request, *args, **kwargs):
-        user_profile = self.object()
+    @action(methods=['put'], detail=True, permission_classes=[permissions.IsAuthenticated])
+    def update_user_preferences(self, request, *args, **kwargs):
+        user = self.get_object()
         
-        if user_profile != request.user:
-            return Response(data=dict(message="Permission denied, can only update your preference"), status=403)
-        
-        serializer = UserSerializer.UserPreferenceSerializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        preference = serializer.save()
+        if user != request.user:
+            return Response(data={"message": "Permission denied, can only update your preference"}, status=403)
 
-        return Response(data=dict(message="User preference updated successfully", data=preference), status=200)
+        user_pref = user.user_preference
+
+        serializer = UserSerializer.UserPreferenceSerializer(
+            instance=user_pref,
+            data=request.data,
+            partial=True,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        updated_pref = serializer.save()
+
+        return Response(
+            data={"message": "User preference updated successfully", "data": UserSerializer.UserPreferenceSerializer(updated_pref).data},
+            status=status.HTTP_200_OK
+        )
     
     @action(methods=['get'], detail=False, permission_classes=[permissions.IsAuthenticated])
     def user_preferences(self, request, *args, **kwargs):
@@ -210,6 +220,17 @@ class UserViewset(viewsets.ModelViewSet):
 
         serializer = UserSerializer.UserPreferenceRetrieveSerializer(preferences)
         return Response(data=serializer.data, status=200)
+
+
+class UserPreferenceViewset(viewsets.ModelViewSet):
+    queryset = UserPreference.objects.all()
+    serializer_class = UserSerializer.UserPreferenceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self, *args, **kwargs):
+        if not self.request.user.is_superuser:
+            return UserPreference.objects.get(user=self.request.user)
+        return super().queryset(*args, **kwargs)
 
 class ConversationViewset(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()

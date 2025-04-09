@@ -246,15 +246,12 @@ class UserSerializer:
         # privacy
         only_verified_user_can_message = serializers.BooleanField(required=False)
 
-        def create(self, validated_data):
-            user = self.context.get("request").user
+        def update(self, instance, validated_data):
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+            return instance
 
-            user_preference = UserPreference(
-                user = user.id,
-                *validated_data
-            )
-            
-            return user_preference
 
     class UserPreferenceRetrieveSerializer(serializers.ModelSerializer):
         class Meta:

@@ -6,11 +6,12 @@ from rest_framework_simplejwt.views import (
      TokenBlacklistView
  )
 
-from .views import UserViewset, TokenObtainPairView, ConversationViewset
+from .views import UserViewset, TokenObtainPairView, ConversationViewset, UserPreferenceViewset
 
 router = DefaultRouter()
 router.register("users", UserViewset, basename="users")
 router.register("conversations", ConversationViewset, basename='conversations')
+router.register("preferences", UserPreferenceViewset, basename='preferences')
 
 urlpatterns = [
 
