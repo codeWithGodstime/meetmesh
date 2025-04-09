@@ -1,18 +1,15 @@
 "use client"
 
-import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Separator } from "@/components/ui/separator"
-import { Switch } from "@/components/ui/switch"
 import {
   Calendar,
-  Check,
   Clock,
   Coffee,
+  Flag,
   Globe,
   MapPin,
   MessageCircle,
@@ -21,11 +18,13 @@ import {
   Plane,
   Shield,
   Star,
+  ThumbsUp,
   Users,
   Zap,
+  Check,
 } from "lucide-react"
 
-// Sample user data
+// Sample user data - in a real app, this would come from your API/database
 const userData = {
   id: "user123",
   name: "Jamie Chen",
@@ -62,21 +61,27 @@ const userData = {
     { day: "Saturday", times: ["Morning", "Afternoon"] },
   ],
   meetupZones: ["Mission District", "SoMa", "Hayes Valley"],
+  distance: "1.2 km away",
 }
 
-export default function RealWorldProfileView() {
-  const [isAvailable, setIsAvailable] = useState(userData.availableThisWeek)
-
+export default function OtherUserProfile() {
   return (
     <div className="max-w-3xl mx-auto">
       {/* Profile Header */}
       <div className="relative mb-6">
-        <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-          <Avatar className="h-28 w-28 border-4 border-background">
-            <AvatarImage src={userData.profileImage} alt={userData.name} />
-            <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
-          </Avatar>
+        <div className="relative w-full h-48 md:h-64 rounded-lg overflow-hidden mb-16 md:mb-24 bg-muted">
+          <img src={userData.coverImage || "/placeholder.svg"} alt="Cover" className="w-full h-full object-cover" />
 
+          {/* Profile Image - Positioned to overlap the cover and content */}
+          <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0">
+            <Avatar className="h-32 w-32 border-4 border-background">
+              <AvatarImage src={userData.profileImage} alt={userData.name} />
+              <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row md:items-start md:pl-40">
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
               <h1 className="text-2xl font-bold">{userData.name}</h1>
@@ -94,19 +99,21 @@ export default function RealWorldProfileView() {
             <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground mb-4">
               <MapPin className="h-4 w-4" />
               <span>{userData.location}</span>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 mt-4">
-              <Button className="gap-2 flex-1">
-                <Calendar className="h-4 w-4" />
-                Request Meetup
-              </Button>
-              <Button variant="outline" className="gap-2 flex-1">
-                <MessageCircle className="h-4 w-4" />
-                Message
-              </Button>
+              <span className="text-xs px-2 py-0.5 bg-muted rounded-full">{userData.distance}</span>
             </div>
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-4">
+          <Button className="gap-2 flex-1">
+            <Calendar className="h-4 w-4" />
+            Request Meetup
+          </Button>
+          <Button variant="outline" className="gap-2 flex-1">
+            <MessageCircle className="h-4 w-4" />
+            Message
+          </Button>
         </div>
       </div>
 
@@ -306,13 +313,17 @@ export default function RealWorldProfileView() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Availability This Week</CardTitle>
-                <Switch checked={isAvailable} onCheckedChange={setIsAvailable} />
+                <Badge variant={userData.availableThisWeek ? "success" : "secondary"}>
+                  {userData.availableThisWeek ? "Available" : "Unavailable"}
+                </Badge>
               </div>
               <CardDescription>
-                {isAvailable ? "Jamie is open to meetups this week" : "Jamie is not available for meetups this week"}
+                {userData.availableThisWeek
+                  ? "Jamie is open to meetups this week"
+                  : "Jamie is not available for meetups this week"}
               </CardDescription>
             </CardHeader>
-            <CardContent className={isAvailable ? "" : "opacity-50 pointer-events-none"}>
+            <CardContent className={userData.availableThisWeek ? "" : "opacity-50 pointer-events-none"}>
               <div className="space-y-4">
                 {userData.availabilityBlocks.map((block) => (
                   <div key={block.day} className="flex items-center justify-between">
@@ -327,15 +338,26 @@ export default function RealWorldProfileView() {
                     </div>
                   </div>
                 ))}
-                <Separator />
-                <div className="text-sm text-muted-foreground">
-                  Request a meetup to see more specific availability and suggest times.
+                <div className="text-sm text-muted-foreground mt-4">
+                  Request a meetup to suggest specific times that work for both of you.
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* User Actions */}
+      <div className="flex justify-between">
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
+          <Flag className="h-4 w-4" />
+          Report User
+        </Button>
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
+          <ThumbsUp className="h-4 w-4" />
+          Recommend
+        </Button>
+      </div>
     </div>
   )
 }
