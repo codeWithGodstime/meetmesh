@@ -20,7 +20,6 @@ from .models import Conversation, Message
 User = get_user_model()
 logger = logging.getLogger(__file__)
 
-
 class UserSerializer:
     class UserCreateSerializer(serializers.ModelSerializer):
         class Meta:
@@ -47,7 +46,6 @@ class UserSerializer:
         location_visibility = serializers.BooleanField(source="profile.location_visibility")
         gender = serializers.CharField(source="profile.gender")
         social_links = serializers.ListField(source="profile.social_links")
-        # fullname = serializers.CharField(source="fullname", read_only=True)
         location = serializers.SerializerMethodField()
         country = serializers.SerializerMethodField()
 
@@ -89,7 +87,7 @@ class UserSerializer:
         bio = serializers.CharField()
         gender = serializers.CharField()
         interests = serializers.ListField(child=serializers.CharField())
-        location = serializers.ListField(child=serializers.CharField(), max_length=200)  # Expects city and country as list
+        location = serializers.ListField(child=serializers.CharField(), max_length=200)
         notifyNearby = serializers.BooleanField()
         occupation = serializers.CharField()
         profileImage = serializers.ImageField(required=False, allow_null=True)
@@ -97,23 +95,20 @@ class UserSerializer:
         socialMediaLinks = serializers.ListField(child=serializers.DictField(), required=False)
 
         def update(self, instance, validated_data):
-            user = instance  # instance is the current user
+            user = instance
 
-            # Unpack location
             country, city = validated_data.get("location", [None, None])
-            user.country = country  # Store country if necessary
-            user.city = city  # Store city if necessary
+            user.country = country
+            user.city = city 
             user.has_completed_onboarding = True
 
-            # Geolocation using geopy (only for the city)
             if city:
                 try:
-                    geolocator = Nominatim(user_agent="meetmesh_app")  # Choose a unique user agent for your app
+                    geolocator = Nominatim(user_agent="meetmesh_app")
                     location = geolocator.geocode(city)
                         
                     if location:
-                        # Create a PointField (latitude, longitude)
-                        user.base_location = Point(location.longitude, location.latitude)  # Assuming `location` is a PointField
+                        user.base_location = Point(location.longitude, location.latitude)
                     else:
                         raise ValidationError(f"Could not find coordinates for city: {city}")
                 except Exception as e:
@@ -121,7 +116,6 @@ class UserSerializer:
 
             user.save()
 
-            # Profile updates
             profile_data = {
                 "bio": validated_data.get("bio"),
                 "gender": validated_data.get("gender"),
@@ -136,7 +130,6 @@ class UserSerializer:
 
             Profile.objects.update_or_create(user=user, defaults=profile_data)
 
-            # Notification settings
             UserPreference.objects.update_or_create(
                 user=user, defaults={"notify_on_proximity": validated_data["notifyNearby"]},
             )
@@ -169,7 +162,6 @@ class UserSerializer:
         def validate(self, data):
             token = data.get("token")
 
-            # Decode user ID from the token
             try:
                 user_id, token = token.split(":", 1)
                 
@@ -177,7 +169,6 @@ class UserSerializer:
             except (ValueError, User.DoesNotExist):
                 raise serializers.ValidationError({"token": "Invalid token."})
 
-            # Validate the token
             token_generator = PasswordResetTokenGenerator()
             if not token_generator.check_token(user, token):
                 raise serializers.ValidationError(
@@ -311,7 +302,7 @@ class ConversationSerializer:
             except ValueError:
                 raise serializers.ValidationError("There must be at least two users in a conversation.")
 
-            return conversation  # ✅ Return the Conversation instance
+            return conversation
 
         def to_representation(self, instance):
             return {

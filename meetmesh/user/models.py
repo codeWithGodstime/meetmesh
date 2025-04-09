@@ -116,7 +116,7 @@ class UserPreference(BaseModelMixin):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_preference")
     show_email = models.BooleanField(default=False, null=True, blank=True)
     dark_theme = models.BooleanField(default=False, null=True, blank=True)
-    meetup_periods = models.JSONField(default=list) #[{day: mon, time: 2}]
+    meetup_periods = models.JSONField(default=list, blank=True, null=True) #[{day: mon, time: 2}]
     who_can_discover_me = models.CharField(max_length=20, choices=choices.WhoCanDiscover.choices, default=choices.WhoCanDiscover.EVERYONE)
     show_profile_of_people_meet = models.BooleanField(default=False, null=True, blank=True)
     only_verified_user_can_message = models.BooleanField(default=False, null=True, blank=True)
