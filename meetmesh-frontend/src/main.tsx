@@ -12,6 +12,8 @@ import FeedLayout from './components/feed-layout.tsx';
 import MessagesPage from './pages/message-page.tsx';
 import QueryProvider from './contexts/queryProvider.tsx';
 import MessagesDetailPage from './pages/message-detail.tsx';
+import ProfilePage from './pages/profile/page.tsx';
+import SettingsPage from './pages/settings/page.tsx';
 
 
 createRoot(document.getElementById('root')!).render(
@@ -28,6 +30,8 @@ createRoot(document.getElementById('root')!).render(
               <Route path='feed' element={<UserMapFeed />} />
               <Route path="messages" element={<MessagesPage />} />
               <Route path="messages/:id" element={<MessagesDetailPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Routes>
         </BrowserRouter>
