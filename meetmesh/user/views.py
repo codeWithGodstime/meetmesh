@@ -13,7 +13,7 @@ from django.db.models import OuterRef, Subquery, Count, Max
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Conversation, Message
+from .models import Conversation, Message, UserPreference
 
 
 from .serializers import UserSerializer, TokenObtainSerializer, MessageSerializer, ConversationSerializer
@@ -189,8 +189,8 @@ class UserViewset(viewsets.ModelViewSet):
         message_serializer.save()
         return Response(data=dict(message="Send successfully"))
 
-    action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
-    def update_user_preferences(self, request, *args, **kwargs):
+    @action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
+    def user_preferences(self, request, *args, **kwargs):
         user_profile = self.object()
         
         if user_profile != request.user:
@@ -201,6 +201,15 @@ class UserViewset(viewsets.ModelViewSet):
         preference = serializer.save()
 
         return Response(data=dict(message="User preference updated successfully", data=preference), status=200)
+    
+    @action(methods=['get'], detail=False, permission_classes=[permissions.IsAuthenticated])
+    def user_preferences(self, request, *args, **kwargs):
+        user = request.user
+        preferences, _ = UserPreference.objects.get_or_create(user=user.id)
+        print("user_preference==", preferences)
+
+        serializer = UserSerializer.UserPreferenceRetrieveSerializer(preferences)
+        return Response(data=serializer.data, status=200)
 
 class ConversationViewset(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()

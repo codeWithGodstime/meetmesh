@@ -256,6 +256,11 @@ class UserSerializer:
             
             return user_preference
 
+    class UserPreferenceRetrieveSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = UserPreference
+            fields = "__all__" #TODO: write this out explicitly 
+
 
 class TokenObtainSerializer(SimpleJWTTokenObtainPairSerializer):
  
