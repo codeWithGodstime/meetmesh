@@ -5,8 +5,13 @@ import { Link } from "react-router-dom"
 import { useAuth } from "@/contexts/auth-context"
 
 const FeedLayout = () => {
-  const {user} = useAuth()
+  const {user, isAuthenticated, isLoading} = useAuth()
+  console.log(user, isAuthenticated)
   const navigate = useNavigate()
+
+  if(isLoading) {
+    return <h2>Loading ....</h2>
+  }
 
   if(!user) {
     navigate("/login")
