@@ -12,7 +12,7 @@ shell:
 
 # Start the Django development server
 startserver:
-	docker-compose -f compose/docker-compose.yml up --build
+	docker-compose -f compose/docker-compose.yml up
 
 # Apply migrations in the backend container
 migrate:

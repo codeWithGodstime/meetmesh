@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import User, Profile, NotificationSetting
+from .models import User, Profile, UserPreference
 
 
 @receiver(post_save, sender=User)
@@ -10,7 +10,7 @@ def create_user_related_models(sender, instance, created, **kwargs):
         Profile.objects.create(user=instance)
 
         # Create NotificationSetting with default radius (optional)
-        NotificationSetting.objects.create(
+        UserPreference.objects.create(
             user=instance,
-            notify_radius_km=100  # you can customize this default
+            notify_radius_km=500
         )

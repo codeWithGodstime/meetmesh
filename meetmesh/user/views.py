@@ -185,6 +185,18 @@ class UserViewset(viewsets.ModelViewSet):
         message_serializer.save()
         return Response(data=dict(message="Send successfully"))
 
+    action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
+    def update_user_preferences(self, request, *args, **kwargs):
+        user_profile = self.object()
+        
+        if user_profile != request.user:
+            return Response(data=dict(message="Permission denied, can only update your preference"), status=403)
+        
+        serializer = UserSerializer.UserPreferenceSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        preference = serializer.save()
+
+        return Response(data=dict(message="User preference updated successfully", data=preference), status=200)
 
 class ConversationViewset(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()

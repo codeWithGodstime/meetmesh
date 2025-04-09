@@ -6,7 +6,8 @@ from django.db.models import Q
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer as SimpleJWTTokenObtainPairSerializer
-from .models import Profile, User, NotificationSetting
+from .models import Profile, User, UserPreference
+from utilities import choices
 from django_countries.fields import Country
 from django_countries.serializer_fields import CountryField
 from geopy.geocoders import Nominatim
@@ -88,7 +89,7 @@ class UserSerializer:
         bio = serializers.CharField()
         gender = serializers.CharField()
         interests = serializers.ListField(child=serializers.CharField())
-        location = serializers.ListField(child=serializers.CharField(), min_length=2, max_length=2)  # Expects city and country as list
+        location = serializers.ListField(child=serializers.CharField(), min_length=100, max_length=2)  # Expects city and country as list
         notifyNearby = serializers.BooleanField()
         occupation = serializers.CharField()
         profileImage = serializers.ImageField(required=False, allow_null=True)
@@ -133,7 +134,7 @@ class UserSerializer:
             Profile.objects.update_or_create(user=user, defaults=profile_data)
 
             # Notification settings
-            NotificationSetting.objects.update_or_create(
+            UserPreference.objects.update_or_create(
                 user=user, defaults={"notify_on_proximity": validated_data["notifyNearby"]},
             )
 
@@ -217,6 +218,40 @@ class UserSerializer:
             user.set_password(self.validated_data["new_password"])
             user.save()
             return user
+
+    class UserPreferenceSerializer(serializers.Serializer):
+        # location related pref.
+        notify_radius_km = serializers.FloatField(required=False)
+
+        # discovery/matching preferences
+        who_can_discover_me = serializers.CharField(required=False)
+        meetup_periods = serializers.ListField(required=False, child=serializers.DictField())
+
+        # profile
+        dark_theme = serializers.BooleanField(required=False)
+        show_profile_of_people_meet = serializers.BooleanField(required=False)
+
+        # Meetings settings
+        auto_accept_meetup_request = serializers.BooleanField(required=False)
+        require_profile_completion = serializers.BooleanField(required=False)
+
+        # notification
+        notify_on_profile_view = serializers.BooleanField(required=False)
+        notify_on_meetup_invites = serializers.BooleanField(required=False)
+        notify_on_proximity = serializers.BooleanField(required=False)
+
+        # privacy
+        only_verified_user_can_message = serializers.BooleanField(required=False)
+
+        def create(self, validated_data):
+            user = self.context.get("request").user
+
+            user_preference = UserPreference(
+                user = user.id,
+                *validated_data
+            )
+            
+            return user_preference
 
 
 class TokenObtainSerializer(SimpleJWTTokenObtainPairSerializer):
