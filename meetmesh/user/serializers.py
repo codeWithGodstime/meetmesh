@@ -248,6 +248,50 @@ class UserSerializer:
         class Meta:
             model = UserPreference
             fields = "__all__" #TODO: write this out explicitly 
+    
+
+    class ProfileSerializer(serializers.ModelSerializer):
+        profileimage = serializers.ImageField(source='profile_image', required=False)
+        bannerimage = serializers.ImageField(source='banner_image', required=False)
+        fullname = serializers.CharField(source='user.get_full_name')
+        username = serializers.CharField(source='user.username')
+        location = serializers.SerializerMethodField()
+        city = serializers.CharField(source='user.city', required=False)
+        country = serializers.CharField(source='user.country', required=False)
+        lastseen = serializers.DateTimeField(source='last_seen', required=False)
+        bio = serializers.CharField(required=False)
+        interests = serializers.ListField(child=serializers.CharField(), required=False)
+        isverified = serializers.BooleanField(source='user.is_verified', required=False)
+        is_online = serializers.BooleanField(required=False)
+        occupation = serializers.CharField(required=False)
+        social_links = serializers.ListField(child=serializers.DictField(), required=False)
+
+        class Meta:
+            model = Profile
+            fields = [
+                "username",
+                'profileimage',
+                'bannerimage',
+                'fullname',
+                'status',
+                'location',
+                'city',
+                'country',
+                'lastseen',
+                'bio',
+                'interests',
+                'isverified',
+                'is_online',
+                'occupation',
+                'social_links',
+            ]
+
+        def get_location(self, obj):
+            point = obj.user.base_location
+            if isinstance(point, Point):
+                return {"latitude": point.y, "longitude": point.x}
+            return None
+
 
 
 class TokenObtainSerializer(SimpleJWTTokenObtainPairSerializer):

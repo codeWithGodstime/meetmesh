@@ -29,7 +29,6 @@ class UserViewset(viewsets.ModelViewSet):
 
     @transaction.atomic()
     def create(self, request, *args, **kwargs):
-
         serializer = UserSerializer.UserCreateSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             user = serializer.save()
@@ -55,8 +54,19 @@ class UserViewset(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, permission_classes=[permissions.IsAuthenticated])
     def me(self, request, *args, **kwargs):
         user = request.user
-        serializer = UserSerializer.UserRetrieveSerializer(user)
+        profile = user.profile
+        serializer = UserSerializer.ProfileSerializer(profile)
         return Response(data=serializer.data)
+    
+    @action(methods=['get'], detail=True, permission_classes=[permissions.IsAuthenticated])
+    def public(self, request, *args, **kwargs):
+        """ viewing anther user profile """
+        user = self.get_object()
+        user = user.profile
+        
+        serializer = UserSerializer.ProfileSerializer(user)
+        return Response(data=serializer.data)
+    
 
     @action(methods=["post"], detail=False, permission_classes=[permissions.AllowAny])
     def reset_password(self, request, *args, **kwargs):
@@ -214,6 +224,7 @@ class UserViewset(viewsets.ModelViewSet):
     
     @action(methods=['get'], detail=False, permission_classes=[permissions.IsAuthenticated])
     def user_preferences(self, request, *args, **kwargs):
+        """"""
         user = request.user
         preferences, _ = UserPreference.objects.get_or_create(user=user.id)
         print("user_preference==", preferences)
