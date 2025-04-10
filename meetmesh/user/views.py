@@ -14,14 +14,14 @@ from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Conversation, Message, UserPreference
-
-
 from .serializers import UserSerializer, TokenObtainSerializer, MessageSerializer, ConversationSerializer
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
-
+channel_layer = get_channel_layer()
 
 class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerializer.UserRetrieveSerializer
@@ -195,6 +195,18 @@ class UserViewset(viewsets.ModelViewSet):
                 content=request.data['content']
             )
         )
+
+        # the sender is online to be able to send message, check if the receiver has a channel_name send messge else save to db
+        # add user to group
+        async_to_sync(channel_layer.group_add)(f"conversation_{room.id}", sender.channel_name)
+
+        if(receiver.channel_name):
+            async_to_sync(channel_layer.group_add)(f"conversation_{room.id}", receiver.channel_name)
+
+        # send message
+        async_to_sync(channel_layer.group_send)(f"conversation_{room.id}", {"type": "send_mesage", "message": request.data['content']})
+        # TODO: send notication
+
         message_serializer.is_valid(raise_exception=True)
         message_serializer.save()
         return Response(data=dict(message="Send successfully"))

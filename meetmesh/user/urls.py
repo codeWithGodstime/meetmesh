@@ -24,5 +24,5 @@ urlpatterns = [
 
 
 websocket_urlpatterns = [
-    path('ws/chat/<int:user_id>/', ChatConsumer.as_asgi()),
+    path('ws/chat/', ChatConsumer.as_asgi()),
 ]
