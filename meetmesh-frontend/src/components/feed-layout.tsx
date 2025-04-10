@@ -1,20 +1,31 @@
-import type React from "react"
+import React, { useEffect } from "react"
 import { Outlet, useNavigate } from "react-router"
 import { Home, MessageSquare, Settings, User } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useAuth } from "@/contexts/auth-context"
 
 const FeedLayout = () => {
-  const {user, isAuthenticated, isLoading} = useAuth()
-  console.log(user, isAuthenticated)
+  const { user, isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
 
-  if(isLoading) {
-    return <h2>Loading ....</h2>
-  }
+  useEffect(() => {
+    if (isLoading) return
 
-  if(!user) {
-    navigate("/login")
+    // 1. Check if user is not logged in
+    if (!isAuthenticated) {
+      navigate("/login")
+      return
+    }
+
+    // 2. Check if user hasn't completed onboarding
+    // if (!user.has_completed_onboarding) {
+    //   navigate("/profile-setup")
+    //   return
+    // }
+  }, [user, isLoading, navigate])
+
+  if (isLoading) {
+    return <h2>Loading ....</h2>
   }
 
   return (

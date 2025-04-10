@@ -1,6 +1,7 @@
 import { MessageDetail } from "@/components/messaging-ui"
 import { useParams } from "react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMessageSocket } from "@/hooks/useMessageSocket";
 import { API_ENDPOINT } from "@/services/auth";
 
 const fetchConversation = async (conversationId: string) => {
@@ -30,6 +31,17 @@ export default function MessagesDetailPage() {
     // {
     //   enabled: !!id,
     // }
+  });
+
+  useMessageSocket({
+    onMessageReceived: (messageEvent) => {
+      if (messageEvent.conversation_id === id) {
+        queryClient.setQueryData(["conversation", id], (oldData) => ({
+          ...oldData,
+          messages: [...oldData.messages, messageEvent.message],
+        }));
+      }
+    },
   });
 
   if (isLoading) return <div>Loading...</div>;

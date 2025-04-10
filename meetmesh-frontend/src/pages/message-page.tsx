@@ -1,6 +1,7 @@
 import MessageUI from "@/components/messaging-ui"
 import { API_ENDPOINT } from "@/services/auth"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMessageSocket } from "@/hooks/useMessageSocket";
 
 
 const getUserConversation = async () => {
@@ -20,11 +21,17 @@ const getUserConversation = async () => {
 }
 
 export default function MessagesPage() {
-
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['conversations'],
     queryFn: getUserConversation
   })
+
+  useMessageSocket({
+    onMessageReceived: () => {
+      queryClient.invalidateQueries(["conversations"]);
+    },
+  });
 
   if (isLoading) return <p className="text-center">Loading conversations...</p>
   if (isError) return <p className="text-center text-red-500">Error: {error.message}</p>

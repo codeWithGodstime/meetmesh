@@ -10,7 +10,7 @@ import { Form } from "@/components/ui/form"
 import ProfileSettingsStep from "./profile-settings-step"
 import UserPreferencesStep from "./user-preferences-step"
 import { cn } from "@/lib/utils"
-import { postAPIMethod } from "@/services/auth"
+import { postFormDataAPIMethod } from "@/services/auth"
 
 // Define the form schema
 const formSchema = z.object({
@@ -99,7 +99,7 @@ export default function OnboardingForm() {
     })
   
     try {
-      await postAPIMethod("complete_onboarding", formData)
+      await postFormDataAPIMethod("users/complete_onboarding", formData)
   
       navigate("/profile")
     } catch (error) {

@@ -1,6 +1,6 @@
 
 export const API_ENDPOINT = 'http://localhost:8000'
-
+export const WEB_SOCKET_URL = 'ws://localhost:8000/ws/chat'
 
 export const loginUser = async (email: string, password: string) => {
     const res = await fetch(`${API_ENDPOINT}/token/`, {
@@ -52,6 +52,25 @@ export const getCurrentUser = async () => {
 
 }
 
+export const postFormDataAPIMethod = async (url:string, requestData: any) => {
+    const accessToken = localStorage.getItem("accessToken");
+
+    const res = await fetch(`${API_ENDPOINT}/${url}/`, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`
+        },
+        body: requestData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        throw data;
+    }
+
+    return data;
+}
 
 export const postAPIMethod = async (url:string, requestData: any) => {
     const accessToken = localStorage.getItem("accessToken");
