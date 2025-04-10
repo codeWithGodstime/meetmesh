@@ -227,8 +227,6 @@ class UserViewset(viewsets.ModelViewSet):
         """"""
         user = request.user
         preferences, _ = UserPreference.objects.get_or_create(user=user.id)
-        print("user_preference==", preferences)
-
         serializer = UserSerializer.UserPreferenceRetrieveSerializer(preferences)
         return Response(data=serializer.data, status=200)
 
@@ -288,8 +286,6 @@ class ConversationViewset(viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         conversation = serializer.save()
-        
-        print(serializer.data, "SERIALIERER")
 
         return Response(data=dict(message="Conversation Created", uid=conversation.uid))
 

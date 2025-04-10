@@ -1,49 +1,56 @@
-from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from channels.consumer import async_to_sync
+from channels.generic.websocket import JsonWebsocketConsumer
 from channels.generic.http import AsyncHttpConsumer
-from asgiref.sync import async_to_sync
-from channels.db import database_sync_to_async
-
 
 class DBHelper:
-    @database_sync_to_async
     def set_user_channel_name(self):
         from .models import User
 
-        user: User = self.user
+        user = self.user
         if user.channel_name != self.channel_name:
             user.channel_name = self.channel_name
+            user.save(update_fields=["channel_name"])
 
-    @database_sync_to_async
     def clear_user_channel_name(self):
         from .models import User
 
-        user: User = self.user
+        user = self.user
         if user.is_authenticated and user.channel_name:
             user.channel_name = None
+            user.save(update_fields=["channel_name"])
 
-
-class ChatConsumer(AsyncJsonWebsocketConsumer, DBHelper):
-    async def connect(self):
+class ChatConsumer(JsonWebsocketConsumer, DBHelper):
+    def connect(self):
         from .models import User
 
-        await self.accept()
-        self.user = self.scope['user']
+        print("Attempting WebSocket connection...")
+        self.accept()
+        print("WebSocket accepted ✅")
 
-        if self.user.is_authenticated:
-            user_conversations = await async_to_sync(self.user.conversations)
+        self.user = self.scope.get("user")
+        print("Connected user:", self.user)
 
-            self.conversations = set(user_conversations)
-            for conv in self.conversations:
-                await self.channel_layer.group(
-                    conv,
-                    self.channel_name
-                )
+        if self.user and self.user.is_authenticated:
+            self.conversations = set(self.get_user_conversations())
+            print(self.conversations, "conversations==")
+            if self.conversations:
+                for conv_id in self.conversations:
+                    group_name = f"conversation_{conv_id}"
+                    self.channel_layer.group_add(group_name, self.channel_name)
+                    print(f"Added to group: {group_name}")
 
-        # cache the channel_name to database
-        await self.set_user_channel_name()
-        return super().connect()
+            self.set_user_channel_name()
+        else:
+            print("⚠️ Anonymous user tried to connect")
+
+    def disconnect(self, code):
+        if self.user and self.user.is_authenticated:
+            for conv_id in getattr(self, "conversations", []):
+                self.channel_layer.group_discard(f"conversation_{conv_id}", self.channel_name)
+            self.clear_user_channel_name()
+
+    def get_user_conversations(self):
+        return list(self.user.conversations.values_list("id", flat=True))
 
 
 class NotificationConsumer(AsyncHttpConsumer):
-    pass
+    pass  # No need to change this one yet — it's async by default

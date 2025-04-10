@@ -1,16 +1,23 @@
-"""
-ASGI config for meetmesh project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
-"""
-
 import os
 
+# ✅ Set environment variable before anything Django-related
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'meetmesh.settings.local')
+
+import django
+from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'meetmesh.settings')
+# ✅ Setup Django explicitly (helps avoid early import issues)
+django.setup()
 
-application = get_asgi_application()
+from user.urls import websocket_urlpatterns
+from .channel_auth_middleware import JWTAuthMiddlewareStack
+
+application = ProtocolTypeRouter({
+    'http': get_asgi_application(),
+    'websocket': JWTAuthMiddlewareStack(
+        URLRouter(
+            websocket_urlpatterns
+        )
+    )
+})

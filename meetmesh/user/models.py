@@ -22,7 +22,6 @@ class Conversation(BaseModelMixin):
             raise ValueError("Receiver and sender must be provided")
 
         conversation = cls.objects.filter(participants=receiver).filter(participants=sender).first()
-        print("Trying conversation", conversation)
 
         if not conversation:
             conversation = cls.objects.create()

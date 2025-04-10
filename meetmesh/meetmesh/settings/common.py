@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "storages",
     "leaflet",
+    "channels",
 
     "user",
     "core"
@@ -60,7 +61,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'meetmesh.wsgi.application'
-ASGI_APPLICATION = 'meetmesh.asgi.application'
+ASGI_APPLICATION = 'meetmesh.asgi.application' 
 
 AUTH_PASSWORD_VALIDATORS = [
     {

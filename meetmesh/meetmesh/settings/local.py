@@ -12,9 +12,9 @@ INSTALLED_APPS += [
 
 INTERNAL_IPS = [
     "127.0.0.1",
-]
-
-DATABASES = {   
+]     
+ 
+DATABASES = {      
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': env("POSTGRES_DBNAME"),
@@ -41,14 +41,14 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 30,
 }
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS").split(",")
 CORS_ALLOW_CREDENTIALS = True
-
-# AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID")
-# AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY")
-# AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME")
-# AWS_S3_CUSTOM_DOMAIN = env("AWS_HOST_DOMAIN") 
 
 AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
 AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
