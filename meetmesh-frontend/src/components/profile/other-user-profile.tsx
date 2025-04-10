@@ -30,7 +30,7 @@ export default function OtherUserProfile({data}) {
     <div className="max-w-3xl mx-auto">
       {/* Profile Header */}
       <div className="relative mb-6">
-        <div className="relative w-full h-48 md:h-64 rounded-lg overflow-hidden mb-16 md:mb-24 bg-muted">
+        <div className="relative w-full h-48 md:h-64 rounded-lg mb-16 md:mb-24 bg-muted">
           <img src={data.bannerimage || "/placeholder.svg"} alt="Cover" className="w-full h-full object-cover" />
 
           {/* Profile Image - Positioned to overlap the cover and content */}

@@ -1,22 +1,11 @@
 import { useState } from "react"
+import { useNavigate } from "react-router"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Switch } from "@/components/ui/switch"
 import {
   Camera,
   Check,
@@ -39,17 +28,17 @@ import {
 import ProfileEdit from "./profile-edit-form"
 
 
-
-export default function MyProfile({data}) {
+export default function MyProfile({ data }) {
   const [isEditingBio, setIsEditingBio] = useState(false)
+  const navigate = useNavigate()
 
   console.log("DATA", data)
 
   return (
     <div className="max-w-3xl mx-auto">
       {/* Profile Header */}
-      <div className="relative mb-6">
-        <div className="relative w-full h-48 md:h-64 rounded-lg overflow-hidden mb-16 md:mb-24 bg-muted">
+      <div className="relative mb-6 -z-10">
+        <div className="relative w-full h-48 md:h-64 rounded-lg mb-16 md:mb-24 z-0">
           <img src={data.bannerimage || "/placeholder.svg"} alt="Cover" className="w-full h-full object-cover" />
 
           {/* Edit Cover Photo Button */}
@@ -58,8 +47,8 @@ export default function MyProfile({data}) {
             Change Cover
           </Button>
 
-          {/* Profile Image - Positioned to overlap the cover and content */}
-          <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0">
+          {/* Profile Image - Moved outside the cover container and positioned absolutely relative to the parent */}
+          <div className="absolute top-full -translate-y-1/2 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0 !z-[20]">
             <div className="relative">
               <Avatar className="h-32 w-32 border-4 border-background">
                 <AvatarImage src={data.profileimage} alt={data.fullname} />
@@ -72,14 +61,14 @@ export default function MyProfile({data}) {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-start md:pl-40">
+        <div className="flex flex-col md:flex-row md:items-start">
           <div className="flex-1 text-center md:text-left">
-            <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2 mr-2">
+            <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2 mr-2 justify-center items-center">
               <h1 className="text-2xl font-bold">{data.fullname}</h1>
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 md:ml-2">
                 {data.status}
               </Badge>
-              {data.isverified ? 
+              {data.isverified ?
                 <Badge variant="secondary" className="gap-1 md:ml-auto">
                   <Shield className="h-3 w-3" />
                   Verified
@@ -97,10 +86,10 @@ export default function MyProfile({data}) {
           </div>
 
           {/* Profile Actions */}
-          <div className="flex flex-wrap gap-2 justify-center md:justify-end mt-4 md:mt-0">
+          <div className="flex flex-wrap gap-2 justify-center md:justify-end mt-4 md:mt-0 items-center">
             <ProfileEdit userData={data} />
 
-            <Button variant="outline" size="sm" className="gap-1">
+            <Button variant="outline" onClick={() => navigate("/settings")} size="sm" className="gap-1">
               <Settings className="h-4 w-4" />
               Settings
             </Button>
@@ -163,7 +152,7 @@ export default function MyProfile({data}) {
               )}
             </CardContent>
           </Card>
-{/* 
+          {/* 
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Trust & Safety</CardTitle>
