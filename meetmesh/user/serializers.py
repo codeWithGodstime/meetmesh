@@ -43,8 +43,6 @@ class UserSerializer:
         interests = serializers.ListField(source="profile.interests")
         profile_image = serializers.ImageField(source="profile.profile_image")
         is_online = serializers.BooleanField(source="profile.is_online")
-        location_visibility = serializers.BooleanField(source="profile.location_visibility")
-        gender = serializers.CharField(source="profile.gender")
         social_links = serializers.ListField(source="profile.social_links")
         location = serializers.SerializerMethodField()
         country = serializers.SerializerMethodField()
@@ -64,16 +62,15 @@ class UserSerializer:
                 "interests",
                 "profile_image",
                 "is_online",
-                "location_visibility",
                 "gender",
                 "social_links",
             ]
         
         def get_location(self, obj):
-            if obj.location:
+            if obj.base_location:
                 return {
-                    "latitude": obj.location.y,
-                    "longitude": obj.location.x
+                    "latitude": obj.base_location.y,
+                    "longitude": obj.base_location.x
                 }
             return None
 
@@ -121,7 +118,6 @@ class UserSerializer:
                 "gender": validated_data.get("gender"),
                 "interests": validated_data.get("interests"),
                 "occupation": validated_data.get("occupation"),
-                "location_visibility": validated_data.get("showLocation"),
                 "social_links": validated_data.get("socialMediaLinks", []),
             }
 
