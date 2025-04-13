@@ -7,7 +7,6 @@ class DBHelper:
         from .models import User
 
         user = self.user
-        print("user is", user, user.channel_name)
         if user.channel_name != self.channel_name:
             user.channel_name = self.channel_name
 
@@ -17,22 +16,18 @@ class DBHelper:
         user = self.user
         if user.is_authenticated and user.channel_name:
             user.channel_name = None
-            # user.save(update_fields=["channel_name"])
 
 class ChatConsumer(JsonWebsocketConsumer, DBHelper):
     def connect(self):
         from .models import User
 
-        print("Attempting WebSocket connection...")
         self.accept()
-        print("WebSocket accepted ✅")
 
         self.user = self.scope.get("user")
-        print("Connected user:", self.user, self.channel_name)
 
         if self.user and self.user.is_authenticated:
             self.conversations = set(self.get_user_conversations())
-            print(self.conversations, "conversations==")
+
             if self.conversations:
                 for conv_id in self.conversations:
                     group_name = f"conversation_{conv_id}"
@@ -40,20 +35,16 @@ class ChatConsumer(JsonWebsocketConsumer, DBHelper):
                     print(f"Added to group: {group_name}")
 
             self.set_user_channel_name()
-            print(self.user.channel_name, "set channel")
         else:
-            print("⚠️ Anonymous user tried to connect")
             self.close()
 
     def disconnect(self, code):
         if self.user and self.user.is_authenticated:
             for conv_id in getattr(self, "conversations", []):
-                print("DISCARDING", conv_id)
                 self.channel_layer.group_discard(f"conversation_{conv_id}", self.channel_name)
             self.clear_user_channel_name()
 
     def receive(self, text_data=None, bytes_data=None, **kwargs):
-        print("Print Message", text_data)
         return super().receive(text_data, bytes_data, **kwargs)
 
     def get_user_conversations(self):

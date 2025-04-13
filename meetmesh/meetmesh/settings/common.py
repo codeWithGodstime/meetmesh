@@ -25,8 +25,8 @@ INSTALLED_APPS = [
     "leaflet",
     "channels",
 
-    "user",
-    "core"
+    "core",
+    "user"
 ]
 
 MIDDLEWARE = [

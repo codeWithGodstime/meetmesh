@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
 from django.core.mail import send_mail
@@ -9,25 +9,6 @@ from utilities.utils import BaseModelMixin
 from utilities import choices
 from utilities.choices import NotificationType, GenderType, ProfileStatus
 
-
-class Conversation(BaseModelMixin):
-    participants = models.ManyToManyField("User", related_name='conversations')
-
-    def get_receiver(self, current_user):
-        return self.participants.exclude(id=current_user.id).first()
-    
-    @classmethod
-    def get_room(cls, receiver, sender):
-        if not receiver or not sender:
-            raise ValueError("Receiver and sender must be provided")
-
-        conversation = cls.objects.filter(participants=receiver).filter(participants=sender).first()
-
-        if not conversation:
-            conversation = cls.objects.create()
-            conversation.participants.add(receiver, sender)
-
-        return conversation
 
 
 class User(BaseModelMixin, AbstractUser):
@@ -60,8 +41,9 @@ class User(BaseModelMixin, AbstractUser):
         return f"{self.first_name} {self.last_name}"
     
     @property
-    def conversations(self):
-        return Conversation.objects.filter(
+    def conversations(self): 
+        from core import models 
+        return models.Conversation.objects.filter(
             Q(participants=self)
         )
     
@@ -139,11 +121,3 @@ class Notification(BaseModelMixin):
     """
 
 
-class Message(BaseModelMixin):
-    content = models.TextField()
-    sender = models.ForeignKey(User, on_delete=models.SET_DEFAULT, default='deleted_account_user', related_name='message_sender')
-    is_read = models.BooleanField(default=False)
-    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
-
-    class Meta:
-        ordering = ['created_at']

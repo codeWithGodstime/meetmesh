@@ -9,12 +9,11 @@ from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from rest_framework_simplejwt.views import TokenObtainPairView as SimpleJWTTokenObtainPairView
 from django.conf import settings
 from django.db import transaction
-from django.db.models import OuterRef, Subquery, Count, Max
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Conversation, Message, UserPreference
-from .serializers import UserSerializer, TokenObtainSerializer, MessageSerializer, ConversationSerializer
+from .models import UserPreference
+from .serializers import UserSerializer, TokenObtainSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -38,7 +37,6 @@ class UserViewset(viewsets.ModelViewSet):
             refresh = RefreshToken.for_user(user)
             access = refresh.access_token
 
-            # Attach tokens to the serializer instance
             data = {
                 "refresh": str(refresh),
                 "access": str(access),
@@ -142,38 +140,13 @@ class UserViewset(viewsets.ModelViewSet):
         user = request.user
         location = user.base_location
         interests = set(user.profile.interests or [])
-        # radius_km = getattr(user.notification_setting, "notify_radius_km", 1000)  # default to 100km
-        radius_km = 1000
+        radius_km = getattr(user.notification_setting, "notify_radius_km", 1000)  # default to 100km
 
         if not location:
             pass
-            # return Response({
-            #     "status": "error",
-            #     "message": "User location is not set."
-            # }, status=status.HTTP_400_BAD_REQUEST)
 
         nearby_users = []
         other_users = User.objects.exclude(id=user.id).select_related('profile')
-
-        # if other_users:
-        #     for other_user in other_users:
-
-        #         if not other_user.location:
-        #             continue
-
-        #         dist = geopy_distance(
-        #             (location.y, location.x),  # (lat, lon)
-        #             (other_user.location.y, other_user.location.x)
-        #         ).km
-
-        #         if dist <= radius_km:
-        #             other_interests = set(other_user.profile.interests or [])
-        #             nearby_users.append(other_user) #TODO remove later
-
-        #             # if interests & other_interests:  # at least one interest overlaps
-        #             #     other_user.distance_km = round(dist, 1)
-        #             #     nearby_users.append(other_user)
-            
 
         serializer = UserSerializer.UserFeedSerializer(other_users, many=True)
         return Response({
@@ -203,7 +176,6 @@ class UserViewset(viewsets.ModelViewSet):
         if(receiver.channel_name):
             async_to_sync(channel_layer.group_add)(f"conversation_{room.id}", receiver.channel_name)
 
-        # send message
         async_to_sync(channel_layer.group_send)(f"conversation_{room.id}", {"type": "send_mesage", "message": request.data['content']})
         # TODO: send notication
 
@@ -252,62 +224,7 @@ class UserPreferenceViewset(viewsets.ModelViewSet):
         if not self.request.user.is_superuser:
             return UserPreference.objects.get(user=self.request.user)
         return super().queryset(*args, **kwargs)
-
-class ConversationViewset(viewsets.ModelViewSet):
-    queryset = Conversation.objects.all()
-    serializer_class = ConversationSerializer.ConversationListSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_field ='uid'
-
-    def list(self, request, *args, **kwargs):
-        latest_message_time = Subquery(
-            Message.objects.filter(conversation=OuterRef('pk'))
-            .order_by('-created_at')
-            .values('created_at')[:1]
-        )
-
-        queryset = self.get_queryset().filter(
-            participants=request.user
-        ).annotate(
-            message_count=Count('messages'),
-            last_message_time=latest_message_time
-        ).filter(
-            message_count__gt=0
-        ).order_by('-last_message_time')  # Most recent first
-
-        self.queryset = queryset
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True, context={'request': request})
-        return super().list(request, *args, **kwargs)
-
-
-    def create(self, request, *args, **kwargs):
-        current_user = request.user
-        receiver = request.data['receiver']
-
-        serializer = ConversationSerializer.ConversationCreateSerializer(
-            data=dict(
-                receiver=receiver,
-            ),
-            context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        conversation = serializer.save()
-
-        return Response(data=dict(message="Conversation Created", uid=conversation.uid))
-
-    def retrieve(self, request, *args, **kwargs):
-        conversation = self.get_object() 
-        # Mark all messages in this conversation as read
-        conversation.messages.filter(is_read=False).update(is_read=True)
-        serializer = ConversationSerializer.ConversationDetailSerializer(conversation, context={'request': request})
-        return Response(serializer.data)
-
+    
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):
      serializer_class = TokenObtainSerializer
  
