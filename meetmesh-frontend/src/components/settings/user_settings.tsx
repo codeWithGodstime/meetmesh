@@ -1,6 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
@@ -35,45 +34,37 @@ const getUserPreference = async () => {
 
 // Define the form schema
 const formSchema = z.object({
-  // Location Preferences
   notify_radius_km: z.number().min(1).max(1000),
 
-  // Discovery Preferences
   who_can_discover_me: z.enum(["EVERYONE", "VERIFIED_USER", "ONLY_ME"]),
-  meetup_periods: z.array(z.object<any>()).optional(),
 
-  // Profile Visibility
   show_profile_of_people_meet: z.boolean().default(true),
 
-  // Notification Settings
   notify_on_proximity: z.boolean().default(true),
   notify_on_meetup_invites: z.boolean().default(true),
   notify_on_profile_view: z.boolean().default(true),
 
-  // Meetup Preferences
   auto_accept_meetup_request: z.boolean().default(false),
   require_profile_completion: z.boolean().default(true),
 
-  // Privacy & Safety
   only_verified_user_can_message: z.boolean().default(false),
 
-  // Language & Accessibility
   dark_theme: z.boolean().default(false),
 })
 
 type SettingsFormValues = z.infer<typeof formSchema>
 
 export default function UserSettingsPage() {
-  // get user_id
+
   const user = JSON.parse(localStorage.getItem("user") || {})
 
   const mutation = useMutation({
     mutationFn: (data) => putAPIMethod(`users/${user['id']}/update_user_preferences`, data),
     onSuccess: () => {
-      toast("Your preferernce have been updated successfully")
+      toast.success("Your preferernce have been updated successfully")
     },
     onError: () => {
-      toast("Something Happenned try again!")
+      toast.error("Something Happenned try again!")
     }
   })
 
@@ -83,7 +74,6 @@ export default function UserSettingsPage() {
     defaultValues: {
       notify_radius_km: 10,
       who_can_discover_me: "EVERYONE",
-      meetup_periods: [],
       notify_on_proximity: true,
       notify_on_meetup_invites: true,
       notify_on_profile_view: false,
@@ -117,7 +107,6 @@ export default function UserSettingsPage() {
 
   function onSubmit(data: SettingsFormValues) {
     console.log("Settings updated:", data)
-    // In a real app, you would save these settings to your backend
     mutation.mutate(data)
   }
 
@@ -215,97 +204,6 @@ export default function UserSettingsPage() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="meetup_periods"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">Preferred Time for Meetups</FormLabel>
-                        <FormDescription>Select your preferred times for meetups</FormDescription>
-                      </div>
-                      <div className="space-y-2">
-                        <FormField
-                          control={form.control}
-                          name="meetup_periods"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes("morning")}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, "morning"])
-                                      : field.onChange(field.value?.filter((value) => value !== "morning"))
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">Morning</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="meetup_periods"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes("afternoon")}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, "afternoon"])
-                                      : field.onChange(field.value?.filter((value) => value !== "afternoon"))
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">Afternoon</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="meetup_periods"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes("evening")}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, "evening"])
-                                      : field.onChange(field.value?.filter((value) => value !== "evening"))
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">Evening</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name="meetup_periods"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes("weekend")}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, "weekend"])
-                                      : field.onChange(field.value?.filter((value) => value !== "weekend"))
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">Weekends</FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </AccordionContent>
             </AccordionItem>
 
@@ -498,58 +396,23 @@ export default function UserSettingsPage() {
                 />
               </AccordionContent>
             </AccordionItem>
-
-            {/* 8. Account Preferences */}
-            {/* <AccordionItem value="account">
-              <AccordionTrigger className="py-4">
-                <div className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-primary" />
-                  <span>Account Preferences</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="p-4 pt-2 space-y-4">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Change Password</h3>
-                  <div className="space-y-2">
-                    <div className="space-y-1">
-                      <Label htmlFor="current-password">Current Password</Label>
-                      <Input id="current-password" type="password" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <Input id="new-password" type="password" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
-                      <Input id="confirm-password" type="password" />
-                    </div>
-                    <Button className="mt-2">Update Password</Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium">Account Actions</h3>
-                  <div className="space-y-2">
-                    <Button variant="outline" className="w-full justify-start">
-                      Deactivate Account Temporarily
-                    </Button>
-                    <Button variant="destructive" className="w-full justify-start">
-                      <AlertTriangle className="mr-2 h-4 w-4" />
-                      Delete My Data & Account
-                    </Button>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem> */}
           </Accordion>
 
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline">
               Cancel
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <Button
+              className={mutation.isPending ? "opacity-50 cursor-not-allowed" : ""}
+              type="submit"
+              disabled={mutation.isPending} // Disable the button while loading
+            >
+              {mutation.isPending ? (
+                <span>Saving...</span>
+              ) : (
+                <span>Save Changes</span>
+              )}
+            </Button>
           </div>
         </form>
       </Form>

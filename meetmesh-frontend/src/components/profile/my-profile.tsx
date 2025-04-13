@@ -30,14 +30,13 @@ import ProfileEdit from "./profile-edit-form"
 
 export default function MyProfile({ data }) {
   const [isEditingBio, setIsEditingBio] = useState(false)
+  const [bio, setBio] = useState("")
   const navigate = useNavigate()
-
-  console.log("DATA", data)
 
   return (
     <div className="max-w-3xl mx-auto">
       {/* Profile Header */}
-      <div className="relative mb-6 -z-10">
+      <div className="relative mb-6">
         <div className="relative w-full h-48 md:h-64 rounded-lg mb-16 md:mb-24 z-0">
           <img src={data.bannerimage || "/placeholder.svg"} alt="Cover" className="w-full h-full object-cover" />
 
@@ -48,7 +47,7 @@ export default function MyProfile({ data }) {
           </Button>
 
           {/* Profile Image - Moved outside the cover container and positioned absolutely relative to the parent */}
-          <div className="absolute top-full -translate-y-1/2 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0 !z-[20]">
+          <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0">
             <div className="relative">
               <Avatar className="h-32 w-32 border-4 border-background">
                 <AvatarImage src={data.profileimage} alt={data.fullname} />
@@ -61,7 +60,7 @@ export default function MyProfile({ data }) {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-start">
+        <div className="flex flex-col md:flex-row md:items-start z-20">
           <div className="flex-1 text-center md:text-left">
             <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2 mr-2 justify-center items-center">
               <h1 className="text-2xl font-bold">{data.fullname}</h1>
@@ -89,7 +88,7 @@ export default function MyProfile({ data }) {
           <div className="flex flex-wrap gap-2 justify-center md:justify-end mt-4 md:mt-0 items-center">
             <ProfileEdit userData={data} />
 
-            <Button variant="outline" onClick={() => navigate("/settings")} size="sm" className="gap-1">
+            <Button variant="outline" onClick={() => navigate("/settings")} size="sm" className="gap-1 hover:bg-green">
               <Settings className="h-4 w-4" />
               Settings
             </Button>
@@ -98,24 +97,24 @@ export default function MyProfile({ data }) {
       </div>
 
       {/* Real-World Stats */}
-      {/* <Card className="mb-6">
+      <Card className="mb-6">
         <CardContent className="p-0">
           <div className="grid grid-cols-3 divide-x">
             <div className="py-4 text-center">
-              <div className="text-2xl font-bold">{userData.realWorldEngagement.totalMeetups}</div>
+              <div className="text-2xl font-bold">{0}</div>
               <div className="text-xs text-muted-foreground">Meetups</div>
             </div>
             <div className="py-4 text-center">
-              <div className="text-2xl font-bold">{userData.realWorldEngagement.uniquePeopleMet}</div>
+              <div className="text-2xl font-bold">{0}</div>
               <div className="text-xs text-muted-foreground">People Met</div>
             </div>
             <div className="py-4 text-center">
               <div className="text-sm font-medium">Last Active</div>
-              <div className="text-xs text-muted-foreground">{userData.realWorldEngagement.lastMeetupDate}</div>
+              <div className="text-xs text-muted-foreground">Today</div>
             </div>
           </div>
         </CardContent>
-      </Card> */}
+      </Card>
 
       <Tabs defaultValue="about" className="mb-6">
         <TabsList className="grid grid-cols-4 mb-4">
@@ -130,26 +129,10 @@ export default function MyProfile({ data }) {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle>Bio</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setIsEditingBio(!isEditingBio)}>
-                <Edit className="h-4 w-4" />
-              </Button>
             </CardHeader>
             <CardContent>
-              {isEditingBio ? (
-                <div className="space-y-2">
-                  <Textarea value={data.bio} onChange={(e) => setBio(e.target.value)} className="min-h-[100px]" />
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => setIsEditingBio(false)}>
-                      Cancel
-                    </Button>
-                    <Button size="sm" onClick={() => setIsEditingBio(false)}>
-                      Save
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">{data.bio}</p>
-              )}
+              <p className="text-muted-foreground">{data.bio}</p>
+
             </CardContent>
           </Card>
           {/* 

@@ -24,10 +24,6 @@ const fetchUserFeed = async () => {
 }
 
 
-
-
-
-// Modal component here or import it
 function UserProfileModal({ user, onClose }: { user: any; onClose: () => void }) {
   const navigate = useNavigate()
   if (!user) return null

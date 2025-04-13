@@ -5,10 +5,8 @@ import OtherUserProfile from "@/components/profile/other-user-profile"
 import { Button } from "@/components/ui/button"
 import { API_ENDPOINT } from "@/services/auth"
 
-// mock fetchers
 const fetchMyProfile = async () => {
   const accessToken = localStorage.getItem("accessToken")
-  console.log("fetching my profile")
   const res = await fetch(`${API_ENDPOINT}/users/me/`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -19,8 +17,6 @@ const fetchMyProfile = async () => {
 }
 
 const fetchPublicProfile = async (user_id: string) => {
-  console.log("fetching my public profile")
-
   const accessToken = localStorage.getItem("accessToken")
   const res = await fetch(`${API_ENDPOINT}/users/${user_id}/public/`, {
     headers: {
