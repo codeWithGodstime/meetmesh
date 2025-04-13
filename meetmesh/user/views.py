@@ -12,8 +12,8 @@ from django.db import transaction
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import UserPreference
-from .serializers import UserSerializer, TokenObtainSerializer
+from .models import UserPreference, Profile
+from .serializers import UserSerializer, TokenObtainSerializer, ProfileSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -48,6 +48,16 @@ class UserViewset(viewsets.ModelViewSet):
         else:
             logger.error(f"User registration failed due to invalid data: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+
+        instance = self.get_object()
+        serializer = UserSerializer.UserUpdateSerializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
 
     @action(methods=['get'], detail=False, permission_classes=[permissions.IsAuthenticated])
     def me(self, request, *args, **kwargs):
@@ -224,6 +234,24 @@ class UserPreferenceViewset(viewsets.ModelViewSet):
         if not self.request.user.is_superuser:
             return UserPreference.objects.get(user=self.request.user)
         return super().queryset(*args, **kwargs)
+
+
+class ProfileViewset(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer.ProfileUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def update(self, request, *args, **kwargs):
+
+        user = request.user
+        profile = Profile.objects.get(user=user)
+        instance = profile
+        
+        serializer = ProfileSerializer.ProfileUpdateSerializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
     
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):
      serializer_class = TokenObtainSerializer

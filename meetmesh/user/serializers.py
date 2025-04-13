@@ -130,7 +130,7 @@ class UserSerializer:
 
             return user
 
-    class UserRetrieveSerializer(serializers.ModelSerializer):
+    class UserMeSerializer(serializers.ModelSerializer):
 
         class Meta:
             model = User
@@ -141,6 +141,16 @@ class UserSerializer:
                 "id",
             )
 
+    class UserRetrieveSerializer(serializers.ModelSerializer):
+
+        class Meta:
+            model = User
+            fields = (
+                "email",
+                "username",
+                "has_completed_onboarding",
+                "id",
+            )
     class ResetPasswordRequestSerializer(serializers.Serializer):
         email = serializers.EmailField(required=True)
 
@@ -208,27 +218,15 @@ class UserSerializer:
             return user
 
     class UserPreferenceSerializer(serializers.Serializer):
-        # location related pref.
         notify_radius_km = serializers.FloatField(required=False)
-
-        # discovery/matching preferences
         who_can_discover_me = serializers.CharField(required=False)
-        meetup_periods = serializers.ListField(required=False, child=serializers.DictField())
-
-        # profile
         dark_theme = serializers.BooleanField(required=False)
         show_profile_of_people_meet = serializers.BooleanField(required=False)
-
-        # Meetings settings
         auto_accept_meetup_request = serializers.BooleanField(required=False)
         require_profile_completion = serializers.BooleanField(required=False)
-
-        # notification
         notify_on_profile_view = serializers.BooleanField(required=False)
         notify_on_meetup_invites = serializers.BooleanField(required=False)
         notify_on_proximity = serializers.BooleanField(required=False)
-
-        # privacy
         only_verified_user_can_message = serializers.BooleanField(required=False)
 
         def update(self, instance, validated_data):
@@ -237,6 +235,40 @@ class UserSerializer:
             instance.save()
             return instance
 
+
+    class UserUpdateSerializer(serializers.ModelSerializer):
+        bio = serializers.CharField(required=False)  
+        status = serializers.CharField(required=False)
+        interests = serializers.JSONField(default=list, required=False)
+
+        class Meta:
+            model = User
+            fields = ("first_name", "last_name", "city", "status", "bio", "interests") 
+
+        def update(self, instance, validated_data):
+            instance.first_name = validated_data.get("first_name", instance.first_name)
+            instance.last_name = validated_data.get("last_name", instance.last_name)
+            instance.city = validated_data.get("city", instance.city)
+            instance.save()
+
+            bio_data = validated_data.get("bio", None)
+            status = validated_data.get("status", None)
+            interests = validated_data.get("interests", None)
+            user_profile = instance.profile
+
+            if bio_data:
+                user_profile.bio = bio_data
+                user_profile.save()
+            
+            if status:
+                user_profile.status = status
+                user_profile.save()
+
+            if interests:
+                user_profile.interests = interests
+                user_profile.save()
+
+            return instance
 
     class UserPreferenceRetrieveSerializer(serializers.ModelSerializer):
         class Meta:
@@ -251,6 +283,8 @@ class UserSerializer:
         username = serializers.CharField(source='user.username')
         location = serializers.SerializerMethodField()
         city = serializers.CharField(source='user.city', required=False)
+        last_name = serializers.CharField(source="user.last_name", required=False)
+        first_name = serializers.CharField(source="user.first_name", required=False)
         country = serializers.CharField(source='user.country', required=False)
         lastseen = serializers.DateTimeField(source='last_seen', required=False)
         bio = serializers.CharField(required=False)
@@ -263,12 +297,15 @@ class UserSerializer:
         class Meta:
             model = Profile
             fields = [
+                "id",
                 "username",
                 'profileimage',
                 'bannerimage',
                 'fullname',
                 'status',
                 'location',
+                "last_name",
+                "first_name",
                 'city',
                 'country',
                 'lastseen',
@@ -287,6 +324,11 @@ class UserSerializer:
             return None
 
 
+class ProfileSerializer:
+    class ProfileUpdateSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = "__all__"
 
 class TokenObtainSerializer(SimpleJWTTokenObtainPairSerializer):
  

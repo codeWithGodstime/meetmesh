@@ -26,7 +26,7 @@ class User(BaseModelMixin, AbstractUser):
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
-    gender = models.CharField(max_length=10, choices=GenderType.choices, null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=GenderType.choices)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
@@ -77,7 +77,7 @@ class Profile(models.Model):
     is_online = models.BooleanField(default=False)
     last_seen = models.DateTimeField(blank=True, null=True)
     social_links = models.JSONField(blank=True, null=True, default=list)
-    status = models.CharField(max_length=20, choices=ProfileStatus.choices, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=ProfileStatus.choices, default="OPEN TO MEET")
     interests = models.JSONField(blank=True, null=True, default=list)
 
     """
@@ -97,7 +97,7 @@ class UserPreference(BaseModelMixin):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_preference")
     show_email = models.BooleanField(default=False, null=True, blank=True)
     dark_theme = models.BooleanField(default=False, null=True, blank=True)
-    meetup_periods = models.JSONField(default=list, blank=True, null=True) #[{day: mon, time: 2}]
+    
     who_can_discover_me = models.CharField(max_length=20, choices=choices.WhoCanDiscover.choices, default=choices.WhoCanDiscover.EVERYONE)
     show_profile_of_people_meet = models.BooleanField(default=False, null=True, blank=True)
     only_verified_user_can_message = models.BooleanField(default=False, null=True, blank=True)

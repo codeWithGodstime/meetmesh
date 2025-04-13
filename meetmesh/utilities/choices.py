@@ -13,7 +13,7 @@ class GenderType(models.TextChoices):
     FEMALE = "FEMALE", _("Female")
 
 class ProfileStatus(models.TextChoices):
-    OPEN_TO_MEET = "OPEN_TO_MEET", _("Open to meet")
+    OPEN_TO_MEET = "OPEN TO MEET", _("Open to meet")
     BUSY = "BUSY", _("Busy")
     EXPLORING = "EXPLORING", _("Exploring")
 
