@@ -1,6 +1,6 @@
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Count
 
 from .serializers import ConversationSerializer, MessageSerializer
 from .models import Conversation, Message
