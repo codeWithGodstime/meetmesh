@@ -43,3 +43,7 @@ CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS").split(",")
 CORS_ALLOW_CREDENTIALS = True
 
 STATIC_URL = 'static/'
+
+
+CELERY_BROKER_URL = "redis://localhost:6379"
+CELERY_RESULT_BACKEND = "redis://localhost:6379"
