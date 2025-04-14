@@ -13,7 +13,8 @@ from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserPreference, Profile
-from core.models import Meetup
+from core.models import Meetup, Conversation
+from core.serializers import MessageSerializer
 from .serializers import UserSerializer, TokenObtainSerializer, ProfileSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -150,13 +151,25 @@ class UserViewset(viewsets.ModelViewSet):
         user = request.user
         location = user.base_location
         interests = set(user.profile.interests or [])
-        radius_km = getattr(user.notification_setting, "notify_radius_km", 1000)  # default to 100km
+        radius_km = getattr(user.user_preference, "notify_radius_km", 1000)
 
         if not location:
-            pass
+            return Response({
+                "status": "error",
+                "message": "User location is not set.",
+                "data": []
+            }, status=400)
 
-        nearby_users = []
         other_users = User.objects.exclude(id=user.id).select_related('profile')
+
+        page = self.paginate_queryset(other_users)
+        if page is not None:
+            serializer = UserSerializer.UserFeedSerializer(page, many=True)
+            return self.get_paginated_response({
+                "status": "success",
+                "message": "Nearby users with shared interests",
+                "data": serializer.data
+            })
 
         serializer = UserSerializer.UserFeedSerializer(other_users, many=True)
         return Response({

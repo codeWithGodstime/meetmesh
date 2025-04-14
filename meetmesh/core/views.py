@@ -58,7 +58,7 @@ class ConversationViewset(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer.ConversationListSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field ='uid'
+    lookup_field ='id'
 
     def list(self, request, *args, **kwargs):
         latest_message_time = Subquery(
@@ -100,7 +100,7 @@ class ConversationViewset(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         conversation = serializer.save()
 
-        return Response(data=dict(message="Conversation Created", uid=conversation.uid))
+        return Response(data=dict(message="Conversation Created", id=conversation.id))
 
     def retrieve(self, request, *args, **kwargs):
         conversation = self.get_object() 

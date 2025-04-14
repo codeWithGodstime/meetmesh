@@ -76,7 +76,7 @@ STORAGES = {
 }
 
 STATIC_URL = 'static/'
-MEDIA_URL = f"{AWS_S3_CUSTOM_DOMAIN}/media/"
+MEDIA_URL = f"{AWS_S3_CUSTOM_DOMAIN}/media/" 
 
 
 CELERY_BROKER_URL = "redis://localhost:6379"
