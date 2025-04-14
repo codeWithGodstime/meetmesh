@@ -26,8 +26,8 @@ const createUserIcon = (user: any, isCurrentUser: boolean) => {
 
   const iconHtml = `
     <div class="relative">
-      <div class="rounded-full overflow-hidden border-4 ${borderColor}">
-        <img src="${user.profileImage}" alt="${user.name}" class="w-10 h-10 object-cover" />
+      <div class="rounded-full h-10 w-10 overflow-hidden border-2 ${borderColor}">
+        <img src="${user.profile_image}" alt="${user.name}" class="aspect-square object-cover" />
       </div>
       <span class="absolute bottom-0 right-0 w-3 h-3 ${statusColor} border-2 border-white rounded-full"></span>
       ${isCurrentUser ? '<div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-xs font-bold bg-primary text-white px-1 rounded">You</div>' : ""}

@@ -20,7 +20,8 @@ const fetchUserFeed = async () => {
   }
 
   const data = await response.json()
-  return { data, currentUser }
+  const res = data.results.data
+  return { res, currentUser }
 }
 
 
@@ -48,7 +49,7 @@ function UserProfileModal({ user, onClose }: { user: any; onClose: () => void })
     const data = await response.json()
 
     console.log(data, "for conversation")
-    navigate(`/messages/${data.uid}`)
+    navigate(`/messages/${data.id}`)
 
     return { data }
   }
@@ -62,9 +63,9 @@ function UserProfileModal({ user, onClose }: { user: any; onClose: () => void })
 
         <div className="text-center">
           <img
-            src={user.profileImage}
+            src={user.profile_image}
             alt={user.name}
-            className="w-20 h-20 rounded-full mx-auto mb-4 object-cover"
+            className="w-20 h-20 aspect-square rounded-full mx-auto mb-4 object-cover"
           />
           <h2 className="text-xl font-bold mb-1">{user.fullname}</h2>
           <p className="text-gray-500 text-sm mb-2 capitalize">{user.status}</p>
@@ -124,7 +125,8 @@ export default function UserMapFeed() {
   if (isLoading) return <p className="text-center">Loading feed...</p>
   if (isError) return <p className="text-center text-red-500">Error: {error.message}</p>
 
-  const users = data?.data?.data ?? []
+  const users = data.res ?? []
+  console.log(users, data)
   const currentUser = data?.currentUser
 
   return (
