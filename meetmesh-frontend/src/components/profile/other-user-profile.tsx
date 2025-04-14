@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { API_ENDPOINT } from "@/services/auth"
 import {
   Calendar,
   Coffee,
@@ -25,8 +26,37 @@ import {
   Twitch,
   ExternalLink,
 } from "lucide-react"
+import { useNavigate } from "react-router"
 
 export default function OtherUserProfile({ data }) {
+  const navigate = useNavigate()
+
+  const getConversation = async (receiver_id: string) => {
+
+      const accessToken = localStorage.getItem("accessToken")
+
+      const response = await fetch(`${API_ENDPOINT}/conversations/`, {
+        method: 'POST',
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ "receiver": receiver_id })
+      })
+
+      if (!response.ok) {
+        throw new Error("Something happenend")
+      }
+
+      const data = await response.json()
+
+      console.log(data, "for conversation")
+      navigate(`/messages/${data.id}`)
+
+      return { data }
+  }
+
+
   // Function to get the appropriate icon for each social media platform
   const getSocialIcon = (name) => {
     const platform = name.toLowerCase()
@@ -94,7 +124,7 @@ export default function OtherUserProfile({ data }) {
             <Calendar className="h-4 w-4" />
             Request Meetup
           </Button>
-          <Button variant="outline" className="gap-2 flex-1">
+          <Button onClick={() => getConversation(data.id)} variant="outline" className="gap-2 flex-1">
             <MessageCircle className="h-4 w-4" />
             Message
           </Button>

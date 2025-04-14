@@ -83,13 +83,11 @@ export default function MapComponent({users, onUserClick, currentUser}: MapCompo
       marker.remove()
     })
     markersRef.current = {}
-    console.log(users.length)
 
     const coordCount: Record<string, number> = {};
 
     // Add new markers
     users.forEach((user) => {
-      console.log(`mapping for ${user.fullname} ${user.location.longitude} ${user.location.latitude}, ${user.c}`)
       const isCurrentUser = user.id === currentUser?.id
 
       const lat = isCurrentUser ? user.lat : user.location.latitude;
