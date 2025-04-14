@@ -61,7 +61,7 @@ export default function MapComponent({users, onUserClick, currentUser}: MapCompo
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
+        maxZoom: 8,
       }).addTo(mapRef.current)
     }
 
@@ -83,15 +83,31 @@ export default function MapComponent({users, onUserClick, currentUser}: MapCompo
       marker.remove()
     })
     markersRef.current = {}
+    console.log(users.length)
+
+    const coordCount: Record<string, number> = {};
 
     // Add new markers
     users.forEach((user) => {
+      console.log(`mapping for ${user.fullname} ${user.location.longitude} ${user.location.latitude}, ${user.c}`)
       const isCurrentUser = user.id === currentUser?.id
+
+      const lat = isCurrentUser ? user.lat : user.location.latitude;
+      const lng = isCurrentUser ? user.lng : user.location.longitude;
+
+      const key = `${lat},${lng}`;
+      coordCount[key] = (coordCount[key] || 0) + 1;
+      const count = coordCount[key];
+
+      // Offset calculation (simple circular spread)
+      const offsetLat = lat + 0.00005 * Math.cos((count - 1) * 2 * Math.PI / 10);
+      const offsetLng = lng + 0.00005 * Math.sin((count - 1) * 2 * Math.PI / 10);
+
       const icon = createUserIcon(user, isCurrentUser)
 
       // Skip adding click handler for current user
       if (!isCurrentUser) {
-        const marker = L.marker([user.location.latitude, user.location.longitude], { icon })
+        const marker = L.marker([offsetLat, offsetLng], { icon })
           .addTo(mapRef.current!)
           .bindTooltip(user.fullname)
           .on("click", () => {

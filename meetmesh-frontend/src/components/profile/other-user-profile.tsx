@@ -5,10 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Calendar,
-  Clock,
   Coffee,
   Flag,
-  Globe,
   MapPin,
   MessageCircle,
   Music,
@@ -17,13 +15,33 @@ import {
   Shield,
   Star,
   ThumbsUp,
-  Users,
   Zap,
-  Check,
+  Twitter,
+  Instagram,
+  Facebook,
+  Linkedin,
+  Github,
+  Youtube,
+  Twitch,
+  ExternalLink,
 } from "lucide-react"
 
+export default function OtherUserProfile({ data }) {
+  // Function to get the appropriate icon for each social media platform
+  const getSocialIcon = (name) => {
+    const platform = name.toLowerCase()
 
-export default function OtherUserProfile({data}) {
+    if (platform.includes("twitter") || platform.includes("x")) return <Twitter className="h-5 w-5" />
+    if (platform.includes("instagram")) return <Instagram className="h-5 w-5" />
+    if (platform.includes("facebook")) return <Facebook className="h-5 w-5" />
+    if (platform.includes("linkedin")) return <Linkedin className="h-5 w-5" />
+    if (platform.includes("github")) return <Github className="h-5 w-5" />
+    if (platform.includes("youtube")) return <Youtube className="h-5 w-5" />
+    if (platform.includes("twitch")) return <Twitch className="h-5 w-5" />
+
+    // Default icon for other platforms
+    return <ExternalLink className="h-5 w-5" />
+  }
 
   console.log("DATA", data)
   return (
@@ -36,7 +54,7 @@ export default function OtherUserProfile({data}) {
           {/* Profile Image - Positioned to overlap the cover and content */}
           <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 md:left-8 md:translate-x-0">
             <Avatar className="h-32 w-32 border-4 border-background">
-              <AvatarImage src={data.profileimage} alt={data.fullname} />
+              <AvatarImage src={data.profileimage || "/placeholder.svg"} alt={data.fullname} />
               <AvatarFallback>{data.fullname.charAt(0)}</AvatarFallback>
             </Avatar>
           </div>
@@ -49,15 +67,17 @@ export default function OtherUserProfile({data}) {
               <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 md:ml-2">
                 {data.status}
               </Badge>
-              {data.isverified ? 
+              {data.isverified ? (
                 <Badge variant="secondary" className="gap-1 md:ml-auto">
                   <Shield className="h-3 w-3" />
                   Verified
-                </Badge> : <Badge variant="destructive" className="gap-1 md:ml-auto">
+                </Badge>
+              ) : (
+                <Badge variant="destructive" className="gap-1 md:ml-auto">
                   <Shield className="h-3 w-3" />
                   Unverified
                 </Badge>
-              }
+              )}
             </div>
 
             <div className="flex items-center justify-center md:justify-start gap-2 text-sm text-muted-foreground mb-4">
@@ -82,31 +102,29 @@ export default function OtherUserProfile({data}) {
       </div>
 
       {/* Real-World Stats */}
-      {/* <Card className="mb-6">
+      <Card className="mb-6">
         <CardContent className="p-0">
           <div className="grid grid-cols-3 divide-x">
             <div className="py-4 text-center">
-              <div className="text-2xl font-bold">{data.realWorldEngagement.totalMeetups}</div>
+              <div className="text-2xl font-bold">{0}</div>
               <div className="text-xs text-muted-foreground">Meetups</div>
             </div>
             <div className="py-4 text-center">
-              <div className="text-2xl font-bold">{data.realWorldEngagement.uniquePeopleMet}</div>
+              <div className="text-2xl font-bold">{0}</div>
               <div className="text-xs text-muted-foreground">People Met</div>
             </div>
             <div className="py-4 text-center">
               <div className="text-sm font-medium">Last Active</div>
-              <div className="text-xs text-muted-foreground">{data.realWorldEngagement.lastMeetupDate}</div>
+              <div className="text-xs text-muted-foreground">{0}</div>
             </div>
           </div>
         </CardContent>
-      </Card> */}
+      </Card>
 
       <Tabs defaultValue="about" className="mb-6">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="interests">Interests</TabsTrigger>
-          <TabsTrigger value="badges">Recognition</TabsTrigger>
-          <TabsTrigger value="availability">Availability</TabsTrigger>
         </TabsList>
 
         {/* About Tab */}
@@ -119,68 +137,6 @@ export default function OtherUserProfile({data}) {
               <p className="text-muted-foreground">{data.bio}</p>
             </CardContent>
           </Card>
-{/* 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Languages</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {data.languages.map((language) => (
-                    <Badge key={language} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
-                      <Globe className="h-3 w-3 mr-1" />
-                      {language}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Ideal Hangouts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {data.idealHangouts.map((hangout) => (
-                    <Badge key={hangout} variant="outline" className="bg-purple-50 border-purple-200 text-purple-700">
-                      <Coffee className="h-3 w-3 mr-1" />
-                      {hangout}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div> */}
-
-          {/* <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Trust & Safety</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <Check className="h-3 w-3 mr-1" />
-                    Phone Verified
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <Check className="h-3 w-3 mr-1" />
-                    Email Verified
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <Users className="h-3 w-3 mr-1" />
-                    {data.mutualConnections} Mutual Connections
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
         </TabsContent>
 
         {/* Interests Tab */}
@@ -210,122 +166,35 @@ export default function OtherUserProfile({data}) {
               </div>
             </CardContent>
           </Card>
-
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Looking to Connect With</CardTitle>
-              <CardDescription>People Jamie wants to meet</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {data.lookingToConnect.map((type) => (
-                  <Badge key={type} variant="outline" className="bg-amber-50 border-amber-200 text-amber-700">
-                    <Users className="h-3 w-3 mr-1" />
-                    {type}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card> */}
-
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Meetup Zones</CardTitle>
-              <CardDescription>Areas where Jamie typically meets</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {data.meetupZones.map((zone) => (
-                  <Badge key={zone} variant="outline" className="bg-emerald-50 border-emerald-200 text-emerald-700">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {zone}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card> */}
-        </TabsContent>
-
-        {/* Badges Tab */}
-        <TabsContent value="badges">
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Recognition & Badges</CardTitle>
-              <CardDescription>Achievements in real-world connections</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {data.badges.map((badge) => (
-                  <div key={badge.name} className="flex items-start gap-3 p-3 rounded-lg border">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <badge.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{badge.name}</h3>
-                      <p className="text-xs text-muted-foreground">{badge.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card> */}
-          <h2>Coming soon....</h2>
-
-        </TabsContent>
-
-        {/* Availability Tab */}
-        <TabsContent value="availability">
-          {/* <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Availability This Week</CardTitle>
-                <Badge variant={data.availableThisWeek ? "success" : "secondary"}>
-                  {data.availableThisWeek ? "Available" : "Unavailable"}
-                </Badge>
-              </div>
-              <CardDescription>
-                {data.availableThisWeek
-                  ? "Jamie is open to meetups this week"
-                  : "Jamie is not available for meetups this week"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className={data.availableThisWeek ? "" : "opacity-50 pointer-events-none"}>
-              <div className="space-y-4">
-                {data.availabilityBlocks.map((block) => (
-                  <div key={block.day} className="flex items-center justify-between">
-                    <div className="font-medium">{block.day}</div>
-                    <div className="flex gap-2">
-                      {block.times.map((time) => (
-                        <Badge key={time} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {time}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <div className="text-sm text-muted-foreground mt-4">
-                  Request a meetup to suggest specific times that work for both of you.
-                </div>
-              </div>
-            </CardContent>
-          </Card> */}
-
-          <h2>Coming soon....</h2>
         </TabsContent>
       </Tabs>
 
-      {/* User Actions */}
-      <div className="flex justify-between">
-        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-          <Flag className="h-4 w-4" />
-          Report User
-        </Button>
-        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground">
-          <ThumbsUp className="h-4 w-4" />
-          Recommend
-        </Button>
-      </div>
+      {/* Social Media Links */}
+      {data.social_links && data.social_links.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Connect</CardTitle>
+            <CardDescription>Find {data.fullname} on social media</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4">
+              {data.social_links.map((social, index) => (
+                <a
+                  key={index}
+                  href={social.profile_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors"
+                  title={social.name}
+                >
+                  {getSocialIcon(social.name)}
+                </a>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
     </div>
   )
 }
