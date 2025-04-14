@@ -13,6 +13,7 @@ from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import UserPreference, Profile
+from core.models import Meetup
 from .serializers import UserSerializer, TokenObtainSerializer, ProfileSerializer
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -75,7 +76,6 @@ class UserViewset(viewsets.ModelViewSet):
         serializer = UserSerializer.ProfileSerializer(user)
         return Response(data=serializer.data)
     
-
     @action(methods=["post"], detail=False, permission_classes=[permissions.AllowAny])
     def reset_password(self, request, *args, **kwargs):
         logger.info(f"Password reset request with data: {request.data}")
@@ -224,6 +224,46 @@ class UserViewset(viewsets.ModelViewSet):
         serializer = UserSerializer.UserPreferenceRetrieveSerializer(preferences)
         return Response(data=serializer.data, status=200)
 
+    @action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
+    def send_meetup_request(self, request, *args, **kwargs):
+        receiver_user = self.get_object()
+        sender_user = request.user
+
+        if receiver_user == sender_user:
+            return Response(
+                {"detail": "You cannot send a meetup request to yourself."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        sender_profile = get_object_or_404(Profile, pk=sender_user.id)
+        receiver_profile = get_object_or_404(Profile, pk=receiver_user.id)
+
+        existing_request = Meetup.objects.filter(
+            sender=sender_profile,
+            receiver=receiver_profile,
+            status='pending'
+        ).first()
+
+        if existing_request:
+            return Response(
+                {"detail": "A pending meetup request already exists."},
+                status=status.HTTP_409_CONFLICT
+            )
+
+        data = {
+            "sender": sender_profile.id,
+            "receiver": receiver_profile.id,
+            "date": request.data.get("date"),
+            "time": request.data.get("time"),
+        }
+
+        serializer = MeetupSerializer.MeetupCreateSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class UserPreferenceViewset(viewsets.ModelViewSet):
     queryset = UserPreference.objects.all()
@@ -234,7 +274,6 @@ class UserPreferenceViewset(viewsets.ModelViewSet):
         if not self.request.user.is_superuser:
             return UserPreference.objects.get(user=self.request.user)
         return super().queryset(*args, **kwargs)
-
 
 class ProfileViewset(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
@@ -253,6 +292,7 @@ class ProfileViewset(viewsets.ModelViewSet):
 
         return Response(serializer.data)
     
+
 class TokenObtainPairView(SimpleJWTTokenObtainPairView):
      serializer_class = TokenObtainSerializer
  

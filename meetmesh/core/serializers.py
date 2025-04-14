@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from .models import Message, Conversation
+from .models import Message, Conversation, Meetup
 
 User = get_user_model()
 
@@ -114,3 +114,15 @@ class ConversationSerializer:
                 "id": partner.id,
                 "uid": partner.uid
             }
+
+
+class MeetupSerializer:
+    class MeetupCreateSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Meetup
+            fields = (
+                "receiver",
+                "sender",
+                "date",
+                "time"
+            )

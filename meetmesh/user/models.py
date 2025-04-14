@@ -70,7 +70,7 @@ class User(BaseModelMixin, AbstractUser):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile', primary_key=True)
     profile_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
     banner_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
