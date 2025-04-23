@@ -19,3 +19,6 @@ django-leaflet
 geopy
 celery==5.5.1
 redis==5.1.0
+scikit-learn
+numpy
+pandas

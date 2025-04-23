@@ -63,6 +63,15 @@ class Command(BaseCommand):
             city = random.choice(NIGERIAN_CITIES)
             interests = random.sample(INTEREST_POOL, k=5)
 
+            def randomize_coordinates(lat, lng, max_offset_km=100):
+                # 1 degree ≈ 111 km, so we offset by ≈ max_offset_km / 111
+                offset = max_offset_km / 111  # ~0.045 for 5km
+                randomized_lat = lat + random.uniform(-offset, offset)
+                randomized_lng = lng + random.uniform(-offset, offset)
+                return randomized_lat, randomized_lng
+
+            lat, lng = randomize_coordinates(city["lat"], city["lng"])
+
             email = fake.unique.email()
             first_name = fake.first_name()
             last_name = fake.last_name()
@@ -75,8 +84,8 @@ class Command(BaseCommand):
                 last_name=last_name,
                 city=city["name"],
                 country="NG",
-                base_location=Point(city["lng"], city["lat"]),
-                current_location=Point(city["lng"], city["lat"]),
+                base_location=Point(lng, lat),
+                current_location=Point(lng, lat),
                 gender=random.choice(["MALE", "FEMALE"]),
                 password="timetokill",
                 has_completed_onboarding=True,

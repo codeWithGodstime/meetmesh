@@ -96,6 +96,8 @@ class UserSerializer:
             }
 
     class UserOnBoardingSerializer(serializers.Serializer):
+        first_name = serializers.CharField()
+        last_name = serializers.CharField()
         bio = serializers.CharField()
         gender = serializers.CharField()
         interests = serializers.ListField(child=serializers.CharField())
@@ -113,6 +115,8 @@ class UserSerializer:
             user.country = country
             user.city = city 
             user.has_completed_onboarding = True
+            user.first_name = validated_data.get("first_name")
+            user.last_name = validated_data.get("last_name")
 
             if city:
                 try:
