@@ -33,3 +33,25 @@ class Message(BaseModelMixin):
 
     class Meta:
         ordering = ['created_at']
+
+
+class Meetup(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+    ]
+
+    sender = models.ForeignKey("user.Profile", related_name='sent_meetups', on_delete=models.CASCADE)
+    receiver = models.ForeignKey("user.Profile", related_name='received_meetups', on_delete=models.CASCADE)
+    date = models.DateField()
+    time = models.TimeField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('sender', 'receiver', 'date', 'time')
+
+    def __str__(self):
+        return f"{self.sender} → {self.receiver} on {self.date} at {self.time} ({self.status})"

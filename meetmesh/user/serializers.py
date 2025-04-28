@@ -36,12 +36,12 @@ class UserSerializer:
             return user
 
     class UserFeedSerializer(serializers.ModelSerializer):
-        occupation = serializers.CharField(source="profile.occupation")
-        bio = serializers.CharField(source="profile.bio")
-        interests = serializers.ListField(source="profile.interests")
-        profile_image = serializers.ImageField(source="profile.profile_image")
-        is_online = serializers.BooleanField(source="profile.is_online")
-        social_links = serializers.ListField(source="profile.social_links")
+        occupation = serializers.SerializerMethodField()
+        bio = serializers.SerializerMethodField()
+        interests = serializers.SerializerMethodField()
+        profile_image = serializers.SerializerMethodField()
+        is_online = serializers.SerializerMethodField()
+        social_links = serializers.SerializerMethodField()
         location = serializers.SerializerMethodField()
         country = serializers.SerializerMethodField()
 
@@ -49,7 +49,6 @@ class UserSerializer:
             model = User
             fields = [
                 "id",
-                "uid",
                 "fullname",
                 "email",
                 "city",
@@ -63,7 +62,25 @@ class UserSerializer:
                 "gender",
                 "social_links",
             ]
-        
+
+        def get_occupation(self, obj):
+            return obj.profile.occupation if hasattr(obj, "profile") else None
+
+        def get_bio(self, obj):
+            return obj.profile.bio if hasattr(obj, "profile") else None
+
+        def get_interests(self, obj):
+            return obj.profile.interests if hasattr(obj, "profile") and obj.profile.interests else []
+
+        def get_profile_image(self, obj):
+            return obj.profile.profile_image.url if hasattr(obj, "profile") else None
+
+        def get_is_online(self, obj):
+            return obj.profile.is_online if hasattr(obj, "profile") else False
+
+        def get_social_links(self, obj):
+            return obj.profile.social_links if hasattr(obj, "profile") and obj.profile.social_links else []
+
         def get_location(self, obj):
             if obj.base_location:
                 return {
@@ -79,6 +96,8 @@ class UserSerializer:
             }
 
     class UserOnBoardingSerializer(serializers.Serializer):
+        first_name = serializers.CharField()
+        last_name = serializers.CharField()
         bio = serializers.CharField()
         gender = serializers.CharField()
         interests = serializers.ListField(child=serializers.CharField())
@@ -96,6 +115,8 @@ class UserSerializer:
             user.country = country
             user.city = city 
             user.has_completed_onboarding = True
+            user.first_name = validated_data.get("first_name")
+            user.last_name = validated_data.get("last_name")
 
             if city:
                 try:
@@ -277,6 +298,7 @@ class UserSerializer:
     
 
     class ProfileSerializer(serializers.ModelSerializer):
+        id = serializers.CharField(source="user.id")
         profileimage = serializers.ImageField(source='profile_image', required=False)
         bannerimage = serializers.ImageField(source='banner_image', required=False)
         fullname = serializers.CharField(source='user.get_full_name')

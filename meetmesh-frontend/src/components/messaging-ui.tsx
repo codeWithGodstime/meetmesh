@@ -31,7 +31,7 @@ function MessageList({ messages }) {
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         {messages.map((message) => (
-          <Link key={message.id} to={`${message.uid}`}>
+          <Link key={message.id} to={`${message.id}`}>
             <Card
               key={message.id}
               className={`mb-2 cursor-pointer hover:bg-gray-100 transition-colors ${message.number_of_unread_messages >= 1 ? "border-l-4 border-l-primary" : ""}`}

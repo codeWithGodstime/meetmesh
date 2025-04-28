@@ -26,8 +26,8 @@ const createUserIcon = (user: any, isCurrentUser: boolean) => {
 
   const iconHtml = `
     <div class="relative">
-      <div class="rounded-full overflow-hidden border-4 ${borderColor}">
-        <img src="${user.profileImage}" alt="${user.name}" class="w-10 h-10 object-cover" />
+      <div class="rounded-full h-10 w-10 overflow-hidden border-2 ${borderColor}">
+        <img src="${user.profile_image}" alt="${user.name}" class="aspect-square object-cover" />
       </div>
       <span class="absolute bottom-0 right-0 w-3 h-3 ${statusColor} border-2 border-white rounded-full"></span>
       ${isCurrentUser ? '<div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 text-xs font-bold bg-primary text-white px-1 rounded">You</div>' : ""}
@@ -61,7 +61,7 @@ export default function MapComponent({users, onUserClick, currentUser}: MapCompo
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19,
+        maxZoom: 8,
       }).addTo(mapRef.current)
     }
 
@@ -84,14 +84,28 @@ export default function MapComponent({users, onUserClick, currentUser}: MapCompo
     })
     markersRef.current = {}
 
+    const coordCount: Record<string, number> = {};
+
     // Add new markers
     users.forEach((user) => {
       const isCurrentUser = user.id === currentUser?.id
+
+      const lat = isCurrentUser ? user.lat : user.location.latitude;
+      const lng = isCurrentUser ? user.lng : user.location.longitude;
+
+      const key = `${lat},${lng}`;
+      coordCount[key] = (coordCount[key] || 0) + 1;
+      const count = coordCount[key];
+
+      // Offset calculation (simple circular spread)
+      const offsetLat = lat + 0.00005 * Math.cos((count - 1) * 2 * Math.PI / 10);
+      const offsetLng = lng + 0.00005 * Math.sin((count - 1) * 2 * Math.PI / 10);
+
       const icon = createUserIcon(user, isCurrentUser)
 
       // Skip adding click handler for current user
       if (!isCurrentUser) {
-        const marker = L.marker([user.location.latitude, user.location.longitude], { icon })
+        const marker = L.marker([offsetLat, offsetLng], { icon })
           .addTo(mapRef.current!)
           .bindTooltip(user.fullname)
           .on("click", () => {

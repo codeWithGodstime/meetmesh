@@ -6,7 +6,7 @@ from .models import User, Profile, UserPreference
 
 @admin.register(User)
 class UserAdmin(LeafletGeoAdmin):
-    pass
+    ordering = ['-created_at']
 
 
 admin.site.register([Profile, UserPreference])

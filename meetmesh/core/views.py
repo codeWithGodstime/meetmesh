@@ -1,16 +1,64 @@
 from rest_framework import viewsets, permissions
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Count
 
-from .serializers import ConversationSerializer, MessageSerializer
-from .models import Conversation, Message
+from .serializers import ConversationSerializer, MeetupSerializer
+from .models import Conversation, Message, Meetup
 
+
+class MeetupRequestViewset(viewsets.ModelViewSet):
+    queryset = Meetup.objects.all()
+    serializer_class = MeetupSerializer.MeetupCreateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Override the default queryset to return meetups specific to the current user
+        if the user is not an admin.
+        """
+        user = self.request.user
+
+        if user.is_superuser:
+            return Meetup.objects.all()
+
+        return Meetup.objects.filter(receiver__user=user)
+
+    @action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
+    def update_meetup_status(self, request, *args, **kwargs):
+        meetup_request = self.get_object()
+
+        if meetup_request.receiver != request.user.profile:
+            return Response(
+                {"detail": "You are not authorized to modify this request."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        action = request.data.get("action")
+
+        if action not in ['accept', 'decline']:
+            return Response(
+                {"detail": "Invalid action. Please provide 'accept' or 'decline'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if action == 'accept':
+            meetup_request.status = 'accepted'
+        elif action == 'decline':
+            meetup_request.status = 'rejected'
+
+        meetup_request.save()
+
+        return Response(
+            MeetupSerializer.MeetupCreateSerializer(meetup_request).data,
+            status=status.HTTP_200_OK
+        )
 
 class ConversationViewset(viewsets.ModelViewSet):
     queryset = Conversation.objects.all()
     serializer_class = ConversationSerializer.ConversationListSerializer
     permission_classes = [permissions.IsAuthenticated]
-    lookup_field ='uid'
+    lookup_field ='id'
 
     def list(self, request, *args, **kwargs):
         latest_message_time = Subquery(
@@ -52,7 +100,7 @@ class ConversationViewset(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         conversation = serializer.save()
 
-        return Response(data=dict(message="Conversation Created", uid=conversation.uid))
+        return Response(data=dict(message="Conversation Created", id=conversation.id))
 
     def retrieve(self, request, *args, **kwargs):
         conversation = self.get_object() 

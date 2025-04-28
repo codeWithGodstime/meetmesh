@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-
-from .models import Message, Conversation
+from django.db.models import Q
+from .models import Message, Conversation, Meetup
 
 User = get_user_model()
 
@@ -51,7 +51,7 @@ class ConversationSerializer:
 
         def to_representation(self, instance):
             return {
-                "uid": instance.uid
+                "id": instance.id
             }
         
     class ConversationListSerializer(serializers.ModelSerializer):
@@ -64,7 +64,7 @@ class ConversationSerializer:
             model = Conversation
             fields = (
                 "id",
-                "uid",
+                "id",
                 "conversation_partner",
                 "content",
                 "last_message_time",
@@ -112,5 +112,17 @@ class ConversationSerializer:
                 "avatar": getattr(partner.profile.profile_image, 'url', None) if partner and partner.profile.profile_image else None,
                 "fullname": partner.fullname.strip() or partner.username.strip() or partner.email,
                 "id": partner.id,
-                "uid": partner.uid
+                "id": partner.id
             }
+
+
+class MeetupSerializer:
+    class MeetupCreateSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Meetup
+            fields = (
+                "receiver",
+                "sender",
+                "date",
+                "time"
+            )

@@ -24,6 +24,14 @@ import {
   Star,
   Users,
   Zap,
+  Twitter,
+  Instagram,
+  Facebook,
+  Linkedin,
+  Github,
+  Youtube,
+  Twitch,
+  ExternalLink,
 } from "lucide-react"
 import ProfileEdit from "./profile-edit-form"
 
@@ -32,6 +40,21 @@ export default function MyProfile({ data }) {
   const [isEditingBio, setIsEditingBio] = useState(false)
   const [bio, setBio] = useState("")
   const navigate = useNavigate()
+
+  const getSocialIcon = (name) => {
+    const platform = name.toLowerCase()
+
+    if (platform.includes("twitter") || platform.includes("x")) return <Twitter className="h-5 w-5" />
+    if (platform.includes("instagram")) return <Instagram className="h-5 w-5" />
+    if (platform.includes("facebook")) return <Facebook className="h-5 w-5" />
+    if (platform.includes("linkedin")) return <Linkedin className="h-5 w-5" />
+    if (platform.includes("github")) return <Github className="h-5 w-5" />
+    if (platform.includes("youtube")) return <Youtube className="h-5 w-5" />
+    if (platform.includes("twitch")) return <Twitch className="h-5 w-5" />
+
+    // Default icon for other platforms
+    return <ExternalLink className="h-5 w-5" />
+  }
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -117,11 +140,9 @@ export default function MyProfile({ data }) {
       </Card>
 
       <Tabs defaultValue="about" className="mb-6">
-        <TabsList className="grid grid-cols-4 mb-4">
+        <TabsList className="grid grid-cols-2 mb-4">
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="interests">Interests</TabsTrigger>
-          <TabsTrigger value="badges">Recognition</TabsTrigger>
-          <TabsTrigger value="availability">Availability</TabsTrigger>
         </TabsList>
 
         {/* About Tab */}
@@ -135,38 +156,6 @@ export default function MyProfile({ data }) {
 
             </CardContent>
           </Card>
-          {/* 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Trust & Safety</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <Check className="h-3 w-3 mr-1" />
-                    Phone Verified
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <Check className="h-3 w-3 mr-1" />
-                    Email Verified
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <Users className="h-3 w-3 mr-1" />
-                    {userData.mutualConnections} Mutual Connections
-                  </Badge>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" className="gap-1">
-                <Shield className="h-4 w-4" />
-                Manage Verifications
-              </Button>
-            </CardContent>
-          </Card> */}
         </TabsContent>
 
         {/* Interests Tab */}
@@ -203,72 +192,33 @@ export default function MyProfile({ data }) {
           </Card>
 
         </TabsContent>
-
-        {/* Badges Tab */}
-        <TabsContent value="badges">
-          {/* <Card>
-            <CardHeader>
-              <CardTitle>Recognition & Badges</CardTitle>
-              <CardDescription>Your achievements in real-world connections</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {userData.badges.map((badge) => (
-                  <div key={badge.name} className="flex items-start gap-3 p-3 rounded-lg border">
-                    <div className="bg-primary/10 p-2 rounded-full">
-                      <badge.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{badge.name}</h3>
-                      <p className="text-xs text-muted-foreground">{badge.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card> */}
-
-          <h2>Coming soon...</h2>
-        </TabsContent>
-
-        {/* Availability Tab */}
-        <TabsContent value="availability">
-          {/* <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Availability This Week</CardTitle>
-                <Switch checked={isAvailable} onCheckedChange={setIsAvailable} />
-              </div>
-              <CardDescription>
-                {isAvailable ? "You are open to meetups this week" : "You are not available for meetups this week"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className={isAvailable ? "" : "opacity-50 pointer-events-none"}>
-              <div className="space-y-4">
-                {userData.availabilityBlocks.map((block) => (
-                  <div key={block.day} className="flex items-center justify-between">
-                    <div className="font-medium">{block.day}</div>
-                    <div className="flex gap-2">
-                      {block.times.map((time) => (
-                        <Badge key={time} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {time}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <Button variant="outline" size="sm" className="w-full mt-4">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Availability
-                </Button>
-              </div>
-            </CardContent>
-          </Card> */}
-          <h2>Coming soon...</h2>
-
-        </TabsContent>
       </Tabs>
+
+      {/* Social Media Links */}
+      {data.social_links && data.social_links.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Connect</CardTitle>
+            <CardDescription>Find {data.fullname} on social media</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-4">
+              {data.social_links.map((social, index) => (
+                <a
+                  key={index}
+                  href={social.profile_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center w-10 h-10 rounded-full bg-muted hover:bg-muted-foreground/20 transition-colors"
+                  title={social.name}
+                >
+                  {getSocialIcon(social.name)}
+                </a>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Account Actions */}
       <div className="flex justify-end">
