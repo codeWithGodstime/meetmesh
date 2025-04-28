@@ -30,8 +30,7 @@ const FeedLayout = () => {
 
   return (
     <>
-      <Outlet />
-      <div className="p-4 rounded-md bg-white fixed bottom-0 left-1/2 -translate-x-1/2 w-2/3 mx-auto h-24 shadow-lg">
+      <div className="p-4  bg-white w-full shadow-lg">
         <nav className="h-full">
           <ul className="flex items-center justify-around h-full">
             <li>
@@ -49,6 +48,9 @@ const FeedLayout = () => {
           </ul>
         </nav>
       </div>
+
+      <Outlet />
+
     </>
   )
 }
