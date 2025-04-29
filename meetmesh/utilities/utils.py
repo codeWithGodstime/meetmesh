@@ -1,5 +1,5 @@
 import uuid
-from django.contrib.gis.db import models
+from django.db import models
 
 def generate_uuid():
     return str(uuid.uuid4())

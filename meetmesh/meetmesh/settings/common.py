@@ -15,7 +15,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',
 
     "rest_framework",
     "rest_framework_simplejwt",
@@ -91,7 +90,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = "user.User" 
 
 LEAFLET_CONFIG = {
-    # AKS Latitude: 5.0000 Longitude: 7.8333.
     "DEFAULT_CENTER": (5.0000, 7.8333),
     "DEFAULT_ZOOM": 16,
     "MIN_ZOOM": 3,

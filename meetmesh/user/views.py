@@ -12,6 +12,7 @@ from django.db import transaction
 from geopy.distance import distance as geopy_distance
 from rest_framework_simplejwt.tokens import RefreshToken
 
+
 from .models import UserPreference, Profile
 from core.models import Meetup, Conversation
 from core.serializers import MessageSerializer
@@ -44,6 +45,9 @@ class UserViewset(viewsets.ModelViewSet):
                 "access": str(access),
                 "user": response_serializer.data
             }
+
+            # generate user recommendation
+
 
             response = Response(data=data, status=status.HTTP_201_CREATED)
             return response
@@ -149,7 +153,7 @@ class UserViewset(viewsets.ModelViewSet):
     @action(methods=["get"], detail=False, permission_classes=[permissions.IsAuthenticated])
     def feeds(self, request, *args, **kwargs):
         user = request.user
-        location = user.base_location
+        location = user.base_location or None
         interests = set(user.profile.interests or [])
         radius_km = getattr(user.user_preference, "notify_radius_km", 1000)
 
@@ -237,6 +241,10 @@ class UserViewset(viewsets.ModelViewSet):
         serializer = UserSerializer.UserPreferenceRetrieveSerializer(preferences)
         return Response(data=serializer.data, status=200)
 
+    @action(methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def user_recommendations(self, request, *args, **kwargs):
+        pass
+
     @action(methods=['post'], detail=True, permission_classes=[permissions.IsAuthenticated])
     def send_meetup_request(self, request, *args, **kwargs):
         receiver_user = self.get_object()
@@ -287,6 +295,7 @@ class UserPreferenceViewset(viewsets.ModelViewSet):
         if not self.request.user.is_superuser:
             return UserPreference.objects.get(user=self.request.user)
         return super().queryset(*args, **kwargs)
+
 
 class ProfileViewset(viewsets.ModelViewSet):
     queryset = Profile.objects.all()

@@ -7,7 +7,6 @@ from .models import Profile
 User = get_user_model()
 
 
-
 def generate_user_vectors():
     all_profiles = Profile.objects.select_related('user')
 
@@ -56,11 +55,10 @@ def recommend_top_n_users(similarity_matrix, user_ids, top_n=5):
         similar_user_ids = [user_ids[idx] for idx in similar_users_indices]
         
         recommendations[user_id] = similar_user_ids
-
     return recommendations
 
 
-def get_user_recommendations(top_n=5):
+def get_user_recommendations(top_n=10):
 
     vectors, user_ids = generate_user_vectors()
 

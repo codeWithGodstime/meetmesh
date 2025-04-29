@@ -1,4 +1,4 @@
-from django.contrib.gis.db import models
+from django.db import models
 from django.db.models import Q
 from django.core.cache import cache
 from django.contrib.auth.models import AbstractUser
@@ -10,7 +10,6 @@ from utilities import choices
 from utilities.choices import NotificationType, GenderType, ProfileStatus
 
 
-
 class User(BaseModelMixin, AbstractUser):
 
     email = models.EmailField(unique=True, db_index=True)
@@ -19,8 +18,7 @@ class User(BaseModelMixin, AbstractUser):
     username = models.CharField(max_length=50, unique=True, null=True, blank=True)
     city = models.CharField(max_length=60, null=True, blank=True)
     country = CountryField(blank=True, null=True, max_length=100)
-    base_location = models.PointField(blank=True, null=True)
-    current_location = models.PointField(blank=True, null=True) # would be the browser location to get user current location
+    base_location = models.JSONField(blank=True, null=True, default=dict)
     has_completed_onboarding = models.BooleanField(default=False)
 
     is_superuser = models.BooleanField(default=False)

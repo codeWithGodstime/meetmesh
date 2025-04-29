@@ -12,7 +12,6 @@ from django_countries.fields import Country
 from django_countries.serializer_fields import CountryField
 from geopy.geocoders import Nominatim
 from django.core.exceptions import ValidationError
-from django.contrib.gis.geos import Point
 
 
 User = get_user_model()
@@ -84,16 +83,13 @@ class UserSerializer:
         def get_location(self, obj):
             if obj.base_location:
                 return {
-                    "latitude": obj.base_location.y,
-                    "longitude": obj.base_location.x
+                    "latitude": obj.base_location.get("latitude"),
+                    "longitude": obj.base_location.get("longitude")
                 }
             return None
 
         def get_country(self, obj):
-            return {
-                # "code": obj.country.code,
-                "name": obj.country.name
-            }
+            return obj.country.name
 
     class UserOnBoardingSerializer(serializers.Serializer):
         first_name = serializers.CharField()
@@ -124,7 +120,7 @@ class UserSerializer:
                     location = geolocator.geocode(city)
                         
                     if location:
-                        user.base_location = Point(location.longitude, location.latitude)
+                        user.base_location = dict(longitude=str(location.longitude), latitude=str(location.latitude))
                     else:
                         raise ValidationError(f"Could not find coordinates for city: {city}")
                 except Exception as e:
@@ -152,24 +148,31 @@ class UserSerializer:
             return user
 
     class UserMeSerializer(serializers.ModelSerializer):
-
+        profileImage = serializers.CharField(source="user.profile.profile_image")
+        fullName = serializers.CharField(source="fullname")
         class Meta:
             model = User
             fields = (
                 "email",
                 "username",
-                "has_completed_onboarding",
+                "fullName",
+                "hasCompletedOnboarding",
+                "profileImage",
                 "id",
             )
 
     class UserRetrieveSerializer(serializers.ModelSerializer):
+        profileImage = serializers.CharField(source="user.profile.profile_image")
+        fullName = serializers.CharField(source="fullname")
 
         class Meta:
             model = User
             fields = (
                 "email",
                 "username",
-                "has_completed_onboarding",
+                "profileImage",
+                "fullName",
+                "hasCompletedOnboarding",
                 "id",
             )
     class ResetPasswordRequestSerializer(serializers.Serializer):
@@ -238,6 +241,7 @@ class UserSerializer:
             user.save()
             return user
 
+
     class UserPreferenceSerializer(serializers.Serializer):
         notify_radius_km = serializers.FloatField(required=False)
         who_can_discover_me = serializers.CharField(required=False)
@@ -294,7 +298,19 @@ class UserSerializer:
     class UserPreferenceRetrieveSerializer(serializers.ModelSerializer):
         class Meta:
             model = UserPreference
-            fields = "__all__" #TODO: write this out explicitly 
+            fields = (
+                "notify_on_proximity",
+                "notify_radius_km",
+                "show_email",
+                "dark_theme",
+                "who_can_discover_me",
+                "show_profile_of_people_meet",
+                "only_verified_user_can_message",
+                "auto_accept_meetup_request",
+                "notify_on_profile_view",
+                "notify_on_meetup_invites",
+                "require_profile_completion"
+            )
     
 
     class ProfileSerializer(serializers.ModelSerializer):
