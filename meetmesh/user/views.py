@@ -46,8 +46,7 @@ class UserViewset(viewsets.ModelViewSet):
                 "user": response_serializer.data
             }
 
-            # generate user recommendation
-
+            #TODO generate user recommendation
 
             response = Response(data=data, status=status.HTTP_201_CREATED)
             return response
@@ -67,18 +66,18 @@ class UserViewset(viewsets.ModelViewSet):
 
     @action(methods=['get'], detail=False, permission_classes=[permissions.IsAuthenticated])
     def me(self, request, *args, **kwargs):
+        """my account information"""
         user = request.user
-        profile = user.profile
-        serializer = UserSerializer.ProfileSerializer(profile)
+        serializer = UserSerializer.UserMeSerializer(user)
         return Response(data=serializer.data)
     
     @action(methods=['get'], detail=True, permission_classes=[permissions.IsAuthenticated])
     def public(self, request, *args, **kwargs):
         """ viewing anther user profile """
         user = self.get_object()
-        user = user.profile
+        user_profile = user.profile
         
-        serializer = UserSerializer.ProfileSerializer(user)
+        serializer = UserSerializer.ProfileSerializer(user_profile)
         return Response(data=serializer.data)
     
     @action(methods=["post"], detail=False, permission_classes=[permissions.AllowAny])
@@ -140,15 +139,6 @@ class UserViewset(viewsets.ModelViewSet):
             serializer.save()
             return Response({"message": "Password change successfully."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    @transaction.atomic
-    @action(methods=['post'], detail=False, permission_classes=[permissions.IsAuthenticated]) 
-    def complete_onboarding(self, request, *args, **kwargs):
-        serializer = UserSerializer.UserOnBoardingSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.update(instance=request.user, validated_data=serializer.validated_data)
-            return Response({"message": "Onboarding completed!"})
-        return Response(serializer.errors, status=400)
 
     @action(methods=["get"], detail=False, permission_classes=[permissions.IsAuthenticated])
     def feeds(self, request, *args, **kwargs):

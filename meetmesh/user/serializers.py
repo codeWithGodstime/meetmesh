@@ -10,8 +10,8 @@ from .models import Profile, User, UserPreference
 from utilities import choices
 from django_countries.fields import Country
 from django_countries.serializer_fields import CountryField
-from geopy.geocoders import Nominatim
 from django.core.exceptions import ValidationError
+from .tasks import get_user_city_geolocation
 
 
 User = get_user_model()
@@ -19,19 +19,71 @@ logger = logging.getLogger(__file__)
 
 class UserSerializer:
     class UserCreateSerializer(serializers.ModelSerializer):
+
+        interests = serializers.ListField(child=serializers.CharField())
+        location = serializers.ListField(child=serializers.CharField(), max_length=200)
+        notifyNearby = serializers.BooleanField()
+        occupation = serializers.CharField()
+        profileImage = serializers.ImageField(required=False, allow_null=True)
+        showLocation = serializers.BooleanField()
+        socialMediaLinks = serializers.ListField(child=serializers.DictField(), required=False)
+        bio = serializers.CharField()
+
         class Meta:
             model = User
             fields = (
                 "email",
                 "password",
                 "username",
+                "first_name",
+                "last_name",
+                "gender",
+                "interests",
+                "location",
+                "notifyNearby",
+                "occupation",
+                "profileImage",
+                "showLocation",
+                "socialMediaLinks"
             )
 
         def validate(self, attrs):
             return super().validate(attrs)
         
         def create(self, validated_data):
-            user = User.objects.create_user(**validated_data)        
+            country, city = validated_data.get("location", [None, None])
+
+            user_data = dict(
+                email=validated_data['email'],
+                password=validated_data['password'],
+                username=validated_data['username'],
+                first_name=validated_data['first_name'],
+                last_name=validated_data['lastname'],
+                city=city,
+                country=country,
+                has_completed_onboarding=True
+            )
+
+            user = User.objects.create_user(**user_data) 
+
+            get_user_city_geolocation.delay(user, city)
+
+            profile_data = {
+                "bio": validated_data.get("bio"),
+                "gender": validated_data.get("gender"),
+                "interests": validated_data.get("interests"),
+                "occupation": validated_data.get("occupation"),
+                "social_links": validated_data.get("socialMediaLinks", []),
+            }
+
+            if "profileImage" in validated_data:
+                profile_data["profile_image"] = validated_data["profileImage"]
+
+            Profile.objects.update_or_create(user=user, defaults=profile_data)
+            UserPreference.objects.update_or_create(
+                user=user, defaults={"notify_on_proximity": validated_data["notifyNearby"]},
+            )
+
             return user
 
     class UserFeedSerializer(serializers.ModelSerializer):
@@ -90,62 +142,6 @@ class UserSerializer:
 
         def get_country(self, obj):
             return obj.country.name
-
-    class UserOnBoardingSerializer(serializers.Serializer):
-        first_name = serializers.CharField()
-        last_name = serializers.CharField()
-        bio = serializers.CharField()
-        gender = serializers.CharField()
-        interests = serializers.ListField(child=serializers.CharField())
-        location = serializers.ListField(child=serializers.CharField(), max_length=200)
-        notifyNearby = serializers.BooleanField()
-        occupation = serializers.CharField()
-        profileImage = serializers.ImageField(required=False, allow_null=True)
-        showLocation = serializers.BooleanField()
-        socialMediaLinks = serializers.ListField(child=serializers.DictField(), required=False)
-
-        def update(self, instance, validated_data):
-            user = instance
-
-            country, city = validated_data.get("location", [None, None])
-            user.country = country
-            user.city = city 
-            user.has_completed_onboarding = True
-            user.first_name = validated_data.get("first_name")
-            user.last_name = validated_data.get("last_name")
-
-            if city:
-                try:
-                    geolocator = Nominatim(user_agent="meetmesh_app")
-                    location = geolocator.geocode(city)
-                        
-                    if location:
-                        user.base_location = dict(longitude=str(location.longitude), latitude=str(location.latitude))
-                    else:
-                        raise ValidationError(f"Could not find coordinates for city: {city}")
-                except Exception as e:
-                    logger.error(f"Could not geocode {city}", e)
-
-            user.save()
-
-            profile_data = {
-                "bio": validated_data.get("bio"),
-                "gender": validated_data.get("gender"),
-                "interests": validated_data.get("interests"),
-                "occupation": validated_data.get("occupation"),
-                "social_links": validated_data.get("socialMediaLinks", []),
-            }
-
-            if "profileImage" in validated_data:
-                profile_data["profile_image"] = validated_data["profileImage"]
-
-            Profile.objects.update_or_create(user=user, defaults=profile_data)
-
-            UserPreference.objects.update_or_create(
-                user=user, defaults={"notify_on_proximity": validated_data["notifyNearby"]},
-            )
-
-            return user
 
     class UserMeSerializer(serializers.ModelSerializer):
         profileImage = serializers.CharField(source="user.profile.profile_image")
@@ -314,6 +310,7 @@ class UserSerializer:
     
 
     class ProfileSerializer(serializers.ModelSerializer):
+        """Profile update serializer"""
         id = serializers.CharField(source="user.id")
         profileimage = serializers.ImageField(source='profile_image', required=False)
         bannerimage = serializers.ImageField(source='banner_image', required=False)
@@ -357,10 +354,7 @@ class UserSerializer:
 
         def get_location(self, obj):
             point = obj.user.base_location
-            if isinstance(point, Point):
-                return {"latitude": point.y, "longitude": point.x}
-            return None
-
+            return point if point else None
 
 class ProfileSerializer:
     class ProfileUpdateSerializer(serializers.ModelSerializer):

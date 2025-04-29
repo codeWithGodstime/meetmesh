@@ -5,6 +5,7 @@ from .models import User, Profile, UserPreference
 
 @receiver(post_save, sender=User)
 def create_user_related_models(sender, instance, created, **kwargs):
+    # fallback if account is created from admin
     if created:
         # Create Profile
         Profile.objects.create(user=instance)
