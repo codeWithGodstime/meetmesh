@@ -1,5 +1,6 @@
 import logging
 from rest_framework import permissions
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -143,25 +144,18 @@ class UserViewset(viewsets.ModelViewSet):
     @action(methods=["get"], detail=False, permission_classes=[permissions.IsAuthenticated])
     def feeds(self, request, *args, **kwargs):
         user = request.user
-        location = user.base_location or None
-        interests = set(user.profile.interests or [])
-        radius_km = getattr(user.user_preference, "notify_radius_km", 1000)
+        city, country = user.city, user.country
 
-        if not location:
-            return Response({
-                "status": "error",
-                "message": "User location is not set.",
-                "data": []
-            }, status=400)
-
-        other_users = User.objects.exclude(id=user.id).select_related('profile')
+        other_users = User.objects.exclude(id=user.id).filter(
+                Q(city=city) | Q(country=country)
+        ).select_related('profile')
 
         page = self.paginate_queryset(other_users)
         if page is not None:
             serializer = UserSerializer.UserFeedSerializer(page, many=True)
             return self.get_paginated_response({
                 "status": "success",
-                "message": "Nearby users with shared interests",
+                "message": "User feeds",
                 "data": serializer.data
             })
 
